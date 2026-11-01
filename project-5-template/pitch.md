@@ -35,7 +35,7 @@ Keep this section to about 1,000 words.
 
 ### Concept
 
-A free website for building Dungeons & Dragons 5e characters without a paywall. Users pick a rules edition (2014 or 2024) when they start a character, then choose species, class, subclass and background from a catalog. The sheet calculates its own numbers, lets users click a skill, save or attack to roll the dice, keeps multiple characters, and exports a PDF.
+A free website for building Dungeons & Dragons 5e characters without a paywall. Users pick a rules edition (2014 or 2024) when they start a character, then choose species, class, subclass and background from a catalog. The sheet calculates its own numbers, lets users click a skill, save or attack to roll the dice, keeps multiple characters, and exports a PDF. Users can also create their own homebrew species and subclasses.
 
 ### Title and branding
 
@@ -64,6 +64,7 @@ D&D players and Dungeon Masters, new and experienced, who want to make and keep 
 - A catalog built from openly licensed sources, each entry tagged with its source and license.
 - Click-to-roll dice with advantage and disadvantage, and a roll history.
 - Local multi-character storage with JSON export and import.
+- A homebrew creator for species and subclasses, with content packs users can import and export as JSON. SRD and homebrew entries share one data model and are labeled by source.
 - PDF export from a layout designed for this project.
 
 ### Starting point
@@ -90,18 +91,19 @@ A user can choose the 2024 rules, build a level 1 character from SRD species, cl
 ### Five-week map
 
 - **Phase 1 (to Nov 2):** pitch and approval; check SRD and source licenses.
-- **Phase 2 (Nov 2–9):** the MVP above for one edition, including the data model.
-- **Phase 3 (Nov 9–16):** second edition, more classes and levels, multiple characters, JSON export.
+- **Phase 2 (Nov 2–9):** the MVP above for one edition, including the data model (built to hold homebrew entries).
+- **Phase 3 (Nov 9–16):** second edition, more classes and levels, multiple characters, JSON export, homebrew creator and content-pack import and export.
 - **Phase 4 (Nov 16–30):** additional openly licensed catalog content, PDF export, click-to-roll polish, accessibility and mobile; version ready for peer review.
 - **Phase 5 (Nov 30–Dec 7):** peer-review fixes, deploy, final verification, breakdown and debrief.
 
 ### Stretch goals
 
-In priority order: dice animation; homebrew species and subclass creator; level-up helper; damage rolls and conditions.
+In priority order: dice animation; level-up helper; damage rolls and conditions.
 
 ### Risks
 
 - **Licensing:** whether subclasses and enough species are available under open licenses. Check the SRD PDFs and each source's terms during Phase 1.
 - **Two rules editions:** the data model may need rework. Prove it early in Phase 2.
-- **Catalog size:** if openly licensed content is thin, the catalog will be smaller than hoped. The homebrew creator is the fallback, which would then move up the stretch list.
+- **Catalog size:** each SRD has only about 9 species and 12 subclasses (one per class). The homebrew creator and content packs are core scope for this reason, so catalog size depends partly on what users add.
+- **Scope:** the creator adds work to Phase 3. Decide early what is cut if it slips.
 - **PDF quality:** layout differences between screen and PDF. Test early in Phase 4.
