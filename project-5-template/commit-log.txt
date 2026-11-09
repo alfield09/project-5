@@ -1,0 +1,10 @@
+ce0c9f4 | 2026-11-09 16:24:30 -0600 | mentalgarbage09 | adding all the classes
+b22e433 | 2026-11-09 14:50:50 -0600 | mentalgarbage09 | spell tab fixes
+67c353e | 2026-11-09 14:39:59 -0600 | mentalgarbage09 | mainly adding spells
+301ec08 | 2026-11-09 14:20:09 -0600 | mentalgarbage09 | Couple more checkpoints
+b2ea5f6 | 2026-11-09 12:06:54 -0600 | mentalgarbage09 | checkpoint 4
+6816e3b | 2026-11-09 11:46:56 -0600 | mentalgarbage09 | First test of abililty scores
+b846a97 | 2026-11-09 11:35:09 -0600 | mentalgarbage09 | BIG commit
+4aa56b4 | 2026-11-02 10:53:48 -0600 | mentalgarbage09 | commit log 1
+dc7cf42 | 2026-11-01 16:00:01 -0600 | mentalgarbage09 | session 1
+dc48318 | 2026-11-01 15:22:28 -0600 | mentalgarbage09 | Intital commit
