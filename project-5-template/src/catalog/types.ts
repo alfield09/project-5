@@ -67,7 +67,7 @@ export interface Background extends EntryBase {
 export interface Spellcasting {
   ability: Ability
   // Level 1 numbers only for now. Full level tables come with higher levels (Phase 3).
-  level1: { cantrips: number; preparedSpells: number; slots: number[] } // slots[0] is level 1 slots
+  level1: { cantrips: number; preparedSpells: number; slots: number[]; spellbookSpells?: number } // slots[0] is level 1 slots; spellbookSpells is the Wizard's spellbook size
 }
 
 /** One starting equipment package a class offers at level 1 (SRD: "Choose Starting Equipment"). */
@@ -78,6 +78,31 @@ export interface EquipmentOption {
   shield?: boolean // true if the package includes a Shield
 }
 
+/** A Warlock Eldritch Invocation. Only the ones with no level requirement are in the catalog (level 1 only). */
+export interface Invocation extends EntryBase {
+  description: string // the SRD text
+  /** If set, with no armor the base Armor Class is this number plus Dexterity (Armor of Shadows casts Mage Armor at will). */
+  unarmoredBaseAc?: number
+}
+
+export type ToolKind = 'artisan' | 'instrument'
+
+/** An artisan's tool or a musical instrument the player can pick as a class tool proficiency. */
+export interface Tool extends EntryBase {
+  kind: ToolKind
+}
+
+/** A level 1 choice of a sacred role: the Cleric's Divine Order or the Druid's Primal Order. */
+export interface ClassOrder {
+  id: string
+  name: string
+  description: string // the SRD text
+  weaponProficiencies?: string[] // added weapon proficiency
+  armorTraining?: string[] // added armor training
+  extraCantrips?: number // extra cantrips known
+  skillBonus?: { skills: string[]; ability: Ability; minimum: number } // a bonus to these skill checks equal to the ability modifier, at least the minimum
+}
+
 export interface ClassEntry extends EntryBase {
   primaryAbility: string // display text, for example "Strength or Dexterity"
   hitDie: number
@@ -85,7 +110,19 @@ export interface ClassEntry extends EntryBase {
   skillChoices: { count: number; options: string[] }
   weaponProficiencies: string[]
   armorTraining: string[]
+  tools: {
+    fixed: string[] // tool proficiencies the class always gives
+    choice?: { count: number; kinds: ToolKind[] } // tools the player picks, from these kinds
+  }
   startingEquipment: EquipmentOption[]
+  /** Armor class without armor is 10 + Dexterity + this ability (Barbarian, Monk). */
+  unarmoredDefense?: { ability: Ability; shieldAllowed: boolean }
+  /** Skills the player picks Expertise in (Rogue): the proficiency bonus counts twice. */
+  expertise?: { skills: number }
+  /** Eldritch Invocations the player picks at level 1 (Warlock). */
+  invocations?: { label: string; count: number }
+  /** A sacred role chosen at level 1 (Cleric, Druid). */
+  order?: { name: string; options: ClassOrder[] }
   subclassLevel: number
   spellcasting?: Spellcasting
 }
@@ -97,4 +134,6 @@ export interface Catalog {
   classes: ClassEntry[]
   armor: Armor[]
   spells: Spell[]
+  tools: Tool[]
+  invocations: Invocation[]
 }

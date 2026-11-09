@@ -1,0 +1,38 @@
+[
+  {
+    "id": "armor-of-shadows",
+    "name": "Armor of Shadows",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "description": "You can cast Mage Armor on yourself without expending a spell slot.",
+    "unarmoredBaseAc": 13
+  },
+  {
+    "id": "eldritch-mind",
+    "name": "Eldritch Mind",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "description": "You have Advantage on Constitution saving throws that you make to maintain Concentration."
+  },
+  {
+    "id": "pact-of-the-blade",
+    "name": "Pact of the Blade",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "description": "As a Bonus Action, you can conjure a pact weapon in your hand--a Simple or Martial Melee weapon of your choice with which you bond--or create a bond with a magic weapon you touch; you can't bond with a magic weapon if someone else is attuned to it or another Warlock is bonded with it. Until the bond ends, you have proficiency with the weapon, and you can use it as a Spellcasting Focus.\nWhenever you attack with the bonded weapon, you can use your Charisma modifier for the attack and damage rolls instead of using Strength or Dexterity; and you can cause the weapon to deal Necrotic, Psychic, or Radiant damage or its normal damage type.\nYour bond with the weapon ends if you use this feature's Bonus Action again, if the weapon is more than 5 feet away from you for 1 minute or more, or if you die. A conjured weapon disappears when the bond ends."
+  },
+  {
+    "id": "pact-of-the-chain",
+    "name": "Pact of the Chain",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "description": "You learn the Find Familiar spell and can cast it as a Magic action without expending a spell slot.\nWhen you cast the spell, you choose one of the normal forms for your familiar or one of the following special forms: Imp, Pseudodragon, Quasit, Skeleton, Sphinx of Wonder, Sprite, or Venomous Snake (see \"Monsters\" for the familiar's stat block).\nAdditionally, when you take the Attack action, you can forgo one of your own attacks to allow your familiar to make one attack of its own with its Reaction."
+  },
+  {
+    "id": "pact-of-the-tome",
+    "name": "Pact of the Tome",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "description": "Stitching together strands of shadow, you conjure forth a book in your hand at the end of a Short or Long Rest. This Book of Shadows (you determine its appearance) contains eldritch magic that only you can access, granting you the benefits below. The book disappears if you conjure another book with this feature or if you die.\nCantrips and Rituals. When the book appears, choose three cantrips, and choose two level 1 spells that have the Ritual tag. The spells can be from any class's spell list, and they must be spells you don't already have prepared. While the book is on your person, you have the chosen spells prepared, and they function as Warlock spells for you.\nSpellcasting Focus. You can use the book as a Spellcasting Focus."
+  }
+]

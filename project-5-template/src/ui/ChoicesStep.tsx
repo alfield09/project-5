@@ -3,6 +3,7 @@
 import { catalog } from '../catalog/load'
 import type { Ability } from '../engine/abilityScores'
 import type { Character } from '../engine/character'
+import { proficientSkillNames } from '../engine/classOptions'
 import { SKILL_NAMES } from '../engine/skills'
 import { ABILITY_NAMES } from './labels'
 
@@ -31,6 +32,12 @@ export default function ChoicesStep({ character, onChange }: Props) {
   }
 
   const freeSkills = species?.freeSkillChoices ?? 0
+
+  const proficient = proficientSkillNames(character, catalog) // the skills Expertise can be taken in
+  const expertisePicks = character.expertiseSkills ?? []
+  const toolPicks = character.toolIds ?? []
+  const toolChoice = classEntry?.tools.choice
+  const invocationRule = classEntry?.invocations
 
   return (
     <section aria-labelledby="choices-heading">
@@ -137,6 +144,105 @@ export default function ChoicesStep({ character, onChange }: Props) {
               </label>
             )
           })}
+        </fieldset>
+      )}
+
+      {classEntry?.order && (
+        <fieldset>
+          <legend>{classEntry.order.name}</legend>
+          {classEntry.order.options.map((option) => (
+            <div key={option.id}>
+              <label className="choice">
+                <input
+                  type="radio"
+                  name="class-order"
+                  checked={character.orderId === option.id}
+                  onChange={() => onChange({ orderId: option.id })}
+                />
+                {option.name}
+              </label>
+              <p className="option-text">{option.description}</p>
+            </div>
+          ))}
+        </fieldset>
+      )}
+
+      {invocationRule && (
+        <fieldset>
+          <legend>
+            {invocationRule.label}: pick {invocationRule.count}
+          </legend>
+          {/* One invocation at level 1, so a radio; more than one would need checkboxes with a limit. */}
+          {catalog.invocations.map((invocation) => (
+            <div key={invocation.id}>
+              <label className="choice">
+                <input
+                  type="radio"
+                  name="invocation"
+                  checked={(character.invocationIds ?? []).includes(invocation.id)}
+                  onChange={() => onChange({ invocationIds: [invocation.id] })}
+                />
+                {invocation.name}
+              </label>
+              <details>
+                <summary>Details</summary>
+                {invocation.description.split('\n').map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </details>
+            </div>
+          ))}
+        </fieldset>
+      )}
+
+      {classEntry?.expertise && (
+        <fieldset>
+          <legend>
+            Expertise: pick {classEntry.expertise.skills} skills ({expertisePicks.length} chosen)
+          </legend>
+          <p className="option-text">Your proficiency bonus counts twice for these skills.</p>
+          {proficient.length === 0 ? (
+            <p>Pick your skills first.</p>
+          ) : (
+            proficient.map((skill) => {
+              const checked = expertisePicks.includes(skill)
+              return (
+                <label key={skill} className="choice">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!checked && expertisePicks.length >= (classEntry.expertise?.skills ?? 0)}
+                    onChange={() => onChange({ expertiseSkills: togglePick(expertisePicks, skill, classEntry.expertise?.skills ?? 0) })}
+                  />
+                  {skill}
+                </label>
+              )
+            })
+          )}
+        </fieldset>
+      )}
+
+      {toolChoice && (
+        <fieldset>
+          <legend>
+            Tool proficiencies: pick {toolChoice.count} ({toolPicks.length} chosen)
+          </legend>
+          {catalog.tools
+            .filter((tool) => toolChoice.kinds.includes(tool.kind))
+            .map((tool) => {
+              const checked = toolPicks.includes(tool.id)
+              return (
+                <label key={tool.id} className="choice">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!checked && toolPicks.length >= toolChoice.count}
+                    onChange={() => onChange({ toolIds: togglePick(toolPicks, tool.id, toolChoice.count) })}
+                  />
+                  {tool.name}
+                </label>
+              )
+            })}
         </fieldset>
       )}
 

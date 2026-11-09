@@ -75,6 +75,9 @@ function isRecord(value: unknown): value is Raw {
 
 const SCORE_METHODS: ScoreMethod[] = ['standardArray', 'pointBuy', 'roll', 'manual']
 
+/** Optional lists of ids and skill names kept in the character record. */
+const LIST_FIELDS = ['spellIds', 'spellbookIds', 'invocationIds', 'expertiseSkills', 'toolIds'] as const
+
 const isAbility = (value: unknown): value is Ability => (ABILITIES as readonly unknown[]).includes(value)
 const isTextList = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string')
 const isWholeNumber = (value: unknown, min: number, max: number): value is number =>
@@ -95,12 +98,14 @@ export function validateCharacter(raw: unknown): { ok: true; character: Characte
   const problems: string[] = []
   if (raw.edition !== '2014' && raw.edition !== '2024') problems.push('edition')
   if (!isWholeNumber(raw.level, 1, 20)) problems.push('level')
-  for (const field of ['speciesId', 'backgroundId', 'classId', 'equipmentOptionId']) {
+  for (const field of ['speciesId', 'backgroundId', 'classId', 'equipmentOptionId', 'orderId']) {
     if (raw[field] !== undefined && typeof raw[field] !== 'string') problems.push(field)
+  }
+  for (const field of LIST_FIELDS) {
+    if (raw[field] !== undefined && !isTextList(raw[field])) problems.push(field)
   }
   if (!isTextList(raw.classSkills)) problems.push('classSkills')
   if (!isTextList(raw.speciesSkills)) problems.push('speciesSkills')
-  if (raw.spellIds !== undefined && !isTextList(raw.spellIds)) problems.push('spellIds')
 
   const baseScores: Character['baseScores'] = {}
   if (!isRecord(raw.baseScores)) {
@@ -132,12 +137,14 @@ export function validateCharacter(raw: unknown): { ok: true; character: Characte
     classSkills: raw.classSkills as string[],
     speciesSkills: raw.speciesSkills as string[],
   }
-  for (const field of ['speciesId', 'backgroundId', 'classId', 'equipmentOptionId'] as const) {
+  for (const field of ['speciesId', 'backgroundId', 'classId', 'equipmentOptionId', 'orderId'] as const) {
     if (raw[field] !== undefined) character[field] = raw[field] as string
+  }
+  for (const field of LIST_FIELDS) {
+    if (raw[field] !== undefined) character[field] = raw[field] as string[]
   }
   if (raw.backgroundBonus !== undefined) character.backgroundBonus = raw.backgroundBonus as BackgroundBonus
   if (raw.scoreMethod !== undefined) character.scoreMethod = raw.scoreMethod as ScoreMethod
   if (rolled !== undefined) character.rolledScores = rolled as number[]
-  if (raw.spellIds !== undefined) character.spellIds = raw.spellIds as string[]
   return { ok: true, character }
 }

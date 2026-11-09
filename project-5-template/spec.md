@@ -64,6 +64,16 @@ Approved for the MVP:
    - Works: after an edit, every derived number is recomputed and matches a hand calculation for the new choices; the edit is saved; cancelling leaves the saved character unchanged.
    - Choices that no longer apply are handled by one rule: when a change makes an earlier choice invalid (for example, spells from a class the character no longer has, or skill picks the new class doesn't offer), the invalid choice is cleared and the builder lists what was removed. Current HP is clamped to the new maximum.
 
+9. **All twelve classes at level 1 (approved Nov 9; 2024 rules only for now).** Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock and Wizard each offer their SRD 5.2.1 core traits and starting equipment packages. Level 1 choices appear only for the classes that have them, and the sheet shows no numbers until the ones that change them are made:
+   - **Unarmored Defense** (no choice): with no armor, Barbarian AC is 10 + Dexterity + Constitution (a Shield is allowed); Monk AC is 10 + Dexterity + Wisdom (a Shield cancels it).
+   - **Expertise** (Rogue): pick two skills the character is proficient in; the proficiency bonus counts twice.
+   - **Divine Order** (Cleric: Protector or Thaumaturge) and **Primal Order** (Druid: Magician or Warden): Protector and Warden add Martial weapons and Heavy or Medium armor training; Thaumaturge and Magician add one cantrip and a bonus to Arcana and Religion (Cleric) or Arcana and Nature (Druid) checks equal to the Wisdom modifier, at least +1.
+   - **Eldritch Invocation** (Warlock, pick one of the five with no level requirement): Armor of Shadows makes unarmored AC 13 + Dexterity; the other four show their text and change no numbers (Pact of the Tome's extra cantrips and rituals are not added to the spell list).
+   - **Tool proficiencies** (Bard: three musical instruments; Monk: one artisan's tool or instrument): a picker appears only for those classes. It changes no numbers and never blocks the sheet; the tools appear under Training.
+   - **Wizard spellbook**: pick six level 1 spells for the spellbook, then prepare four from it. Cantrips come from the whole Wizard list.
+   - The other level 1 features (Rage, Sneak Attack, Martial Arts, Bardic Inspiration and so on) are not shown yet; they belong with a Features & Traits tab.
+   - Works: each choice is cleared with a notice when a change makes it invalid (for example the Cleric's order when the class changes), and all of them are saved and restored.
+
 Provisional (not yet approved): roll history survives a reload; the sheet uses three columns on wide screens and one column on a phone.
 
 Open questions:
@@ -143,6 +153,10 @@ Consequential structural decisions, the alternatives considered, and why you cho
 - Decision: one catalog per edition. Each entry is tagged with its source and license. Homebrew content packs use the same format, so the loader handles SRD and homebrew entries identically.
 - Alternative: typed data in TypeScript files. Better type checking, but harder for users to write packs by hand.
 - Why: users must be able to author and share packs, and the site stays fully static. Entries are validated when loaded, since JSON isn't type checked.
+
+**Nov 9: all twelve classes at level 1, 2024 rules only.**
+- Decision: the nine other SRD classes are added at level 1. The 2014 rules (the pitch's "second edition") are deferred; the shared model with an `edition` field on every entry stays, so they can be added later. See research.md, Scope changes.
+- Why: the project is behind the pitch's schedule, and more classes make the one edition useful sooner.
 
 **Nov 9: sheet scope in three groups.**
 - Core (MVP): header (name, species, class, level), six abilities, proficiency bonus, speed, initiative, AC, HP (current, max, temp), saves, skills, passive scores, senses, proficiencies, and click-to-roll on skills and saves.

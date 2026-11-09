@@ -21,6 +21,11 @@ export interface Character {
   backgroundBonus?: BackgroundBonus
   classSkills: string[] // the skills picked from the class's list
   speciesSkills: string[] // skills of the player's choice from the species, for example the Human's Skillful
+  orderId?: string // the Cleric's Divine Order or the Druid's Primal Order
+  invocationIds?: string[] // the Warlock's Eldritch Invocations
+  expertiseSkills?: string[] // the Rogue's Expertise skills
+  toolIds?: string[] // tools picked from the catalog (Bard, Monk)
+  spellbookIds?: string[] // the Wizard's spellbook; the prepared spells are chosen from it
   spellIds?: string[] // chosen cantrips and level 1 spells, from the catalog; one list for both kinds
   equipmentOptionId?: string // the class's starting equipment package ('A', 'B' ...); it decides worn armor and shield
 }
@@ -40,7 +45,8 @@ export interface Derived {
   darkvision?: number // feet
   proficientSaves: Ability[]
   proficientSkills: string[] // in the order of the skill list
-  training: { armor: string[]; weapons: string[]; tool: string }
+  expertiseSkills: string[] // skills where the proficiency bonus counts twice
+  training: { armor: string[]; weapons: string[]; tools: string[] }
   spellcasting?: { ability: Ability; saveDc: number; attackBonus: number; slots: number[] } // slots[0] is level 1
   warnings: string[] // legal but costly choices, such as armor the class is not trained in
 }

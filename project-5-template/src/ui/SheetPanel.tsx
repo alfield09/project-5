@@ -39,10 +39,12 @@ export default function SheetPanel({ character, onRoll }: { character: Character
   )
 }
 
-function Marker({ proficient }: { proficient: boolean }) {
+/** Proficiency marker: open circle, filled circle, or a diamond for Expertise (the proficiency bonus counts twice). */
+function Marker({ proficient, expert = false }: { proficient: boolean; expert?: boolean }) {
+  const label = expert ? 'expertise' : proficient ? 'proficient' : 'not proficient'
   return (
-    <span className="marker" aria-label={proficient ? 'proficient' : 'not proficient'}>
-      {proficient ? '●' : '○'}
+    <span className="marker" aria-label={label}>
+      {expert ? '◆' : proficient ? '●' : '○'}
     </span>
   )
 }
@@ -159,7 +161,7 @@ function SheetNumbers({
               aria-label={`Roll ${skill.name} check, ${formatModifier(derived.skills[skill.name])}`}
               onClick={() => onRoll(`${skill.name} check`, derived.skills[skill.name])}
             >
-              <Marker proficient={derived.proficientSkills.includes(skill.name)} />
+              <Marker proficient={derived.proficientSkills.includes(skill.name)} expert={derived.expertiseSkills.includes(skill.name)} />
               <span className="tag">{skill.ability.toUpperCase()}</span>
               <span className="name">{skill.name}</span>
               <span className="bonus">{formatModifier(derived.skills[skill.name])}</span>
@@ -187,7 +189,7 @@ function SheetNumbers({
       <h3>Training</h3>
       <p>Armor: {derived.training.armor.length > 0 ? derived.training.armor.join(', ') : 'None'}</p>
       <p>Weapons: {derived.training.weapons.join(', ')}</p>
-      <p>Tool: {derived.training.tool}</p>
+      <p>Tools: {derived.training.tools.join(', ')}</p>
     </>
   )
 }

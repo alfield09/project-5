@@ -17,6 +17,11 @@ const fighter: Character = {
   speciesSkills: [],
   equipmentOptionId: 'A',
   spellIds: ['light', 'magic-missile'],
+  spellbookIds: ['detect-magic', 'sleep'],
+  orderId: 'thaumaturge',
+  invocationIds: ['armor-of-shadows'],
+  expertiseSkills: ['Stealth', 'Perception'],
+  toolIds: ['lute', 'flute'],
 }
 
 /** Store text directly, as if an old or edited version had saved it. */
@@ -47,6 +52,17 @@ describe('saving and loading', () => {
     saveCharacter(storage, fighter)
     const result = loadCharacter(storage)
     expect(result.status === 'loaded' && result.character.spellIds).toEqual(['light', 'magic-missile'])
+  })
+
+  test('the choices of the new classes survive', () => {
+    const storage = new MemoryStorage()
+    saveCharacter(storage, fighter)
+    const result = loadCharacter(storage)
+    if (result.status !== 'loaded') throw new Error('not loaded')
+    expect(result.character).toMatchObject({
+      spellbookIds: ['detect-magic', 'sleep'], orderId: 'thaumaturge', invocationIds: ['armor-of-shadows'],
+      expertiseSkills: ['Stealth', 'Perception'], toolIds: ['lute', 'flute'],
+    })
   })
 
   test('a half-filled character saves and loads too', () => {
@@ -119,6 +135,11 @@ describe('saved text that cannot be used', () => {
       'rolled out of range': { ...fighter, rolledScores: [19, 10, 10, 10, 10, 10] },
       'score not whole': { ...fighter, baseScores: { str: 10.5 } },
       'spells not a list': { ...fighter, spellIds: 'fire-bolt' },
+      'spellbook not a list': { ...fighter, spellbookIds: 'sleep' },
+      'order not text': { ...fighter, orderId: 4 },
+      'invocations not a list': { ...fighter, invocationIds: 'armor-of-shadows' },
+      'expertise not text': { ...fighter, expertiseSkills: [1, 2] },
+      'tools not a list': { ...fighter, toolIds: { lute: true } },
       'spell id not text': { ...fighter, spellIds: [7] },
       'not an object': 'a string',
     }

@@ -234,7 +234,7 @@ describe('proficiency markers and training for the sheet', () => {
     expect(result.training).toEqual({
       armor: ['Light', 'Medium', 'Heavy', 'Shields'],
       weapons: ['Simple', 'Martial'],
-      tool: 'Choose one kind of Gaming Set',
+      tools: ['Choose one kind of Gaming Set'],
     })
     expect(result.darkvision).toBe(120)
   })
@@ -243,7 +243,7 @@ describe('proficiency markers and training for the sheet', () => {
     const result = derive(paladin)
     expect(result.proficientSaves).toEqual(['wis', 'cha'])
     expect(result.proficientSkills).toEqual(['Athletics', 'Insight', 'Persuasion', 'Religion'])
-    expect(result.training.tool).toBe("Calligrapher's Supplies")
+    expect(result.training.tools).toEqual(["Calligrapher's Supplies"])
     expect(result.darkvision).toBeUndefined()
   })
 
@@ -251,7 +251,7 @@ describe('proficiency markers and training for the sheet', () => {
     const result = derive(sorcerer)
     expect(result.proficientSaves).toEqual(['con', 'cha'])
     expect(result.proficientSkills).toEqual(['Arcana', 'Perception', 'Persuasion', 'Sleight of Hand', 'Stealth'])
-    expect(result.training).toEqual({ armor: [], weapons: ['Simple'], tool: "Thieves' Tools" })
+    expect(result.training).toEqual({ armor: [], weapons: ['Simple'], tools: ["Thieves' Tools"] })
   })
 })
 

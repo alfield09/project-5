@@ -380,3 +380,9 @@ details summary {
   white-space: nowrap;
   font-weight: bold;
 }
+
+.option-text {
+  margin: 0 0 8px 1.6rem;
+  font-size: 0.9rem;
+  color: #aab1b8;
+}

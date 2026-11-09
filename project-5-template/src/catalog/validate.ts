@@ -2,7 +2,7 @@
 // A bad entry is skipped with a message that names it; the rest still load (spec.md, item 6).
 import { ABILITIES } from '../engine/abilityScores'
 import { SKILL_NAMES } from '../engine/skills'
-import type { Armor, Background, Catalog, ClassEntry, SourceRecord, Species, Spell } from './types'
+import type { Armor, Background, Catalog, ClassEntry, Invocation, SourceRecord, Species, Spell, Tool } from './types'
 
 type Raw = Record<string, unknown>
 
@@ -126,6 +126,7 @@ function spellcastingErrors(value: unknown): string[] {
     const countsOk = [level1.cantrips, level1.preparedSpells].every((n) => Number.isInteger(n) && (n as number) >= 0)
     const slotsOk = Array.isArray(level1.slots) && level1.slots.every((n) => Number.isInteger(n) && n >= 0)
     if (!countsOk) errors.push('spellcasting.level1 cantrips and preparedSpells must be whole numbers')
+    if (level1.spellbookSpells !== undefined && !(Number.isInteger(level1.spellbookSpells) && (level1.spellbookSpells as number) > 0)) errors.push('spellcasting.level1.spellbookSpells must be a positive whole number')
     if (!slotsOk) errors.push('spellcasting.level1.slots must be a list of whole numbers')
   }
   return errors.filter((error): error is string => error !== undefined)
@@ -151,6 +152,88 @@ function equipmentErrors(value: unknown, armor: Armor[]): string[] {
   return errors
 }
 
+function invocationErrors(raw: Raw): string[] {
+  const errors = [text(raw.description, 'description')]
+  if (raw.unarmoredBaseAc !== undefined) errors.push(positiveNumber(raw.unarmoredBaseAc, 'unarmoredBaseAc'))
+  return errors.filter((error): error is string => error !== undefined)
+}
+
+function toolErrors(raw: Raw): string[] {
+  return raw.kind === 'artisan' || raw.kind === 'instrument' ? [] : ['kind must be "artisan" or "instrument"']
+}
+
+const isAbility = (value: unknown) => (ABILITIES as readonly unknown[]).includes(value)
+
+function orderErrors(value: unknown): string[] {
+  if (!isRecord(value)) return ['order must be an object']
+  const errors: (string | undefined)[] = [text(value.name, 'order.name')]
+  if (!Array.isArray(value.options) || value.options.length < 2) {
+    errors.push('order.options must list at least two options')
+  } else {
+    const ids = new Set<string>()
+    for (const option of value.options) {
+      if (!isRecord(option)) {
+        errors.push('each order option must be an object')
+        continue
+      }
+      errors.push(text(option.id, 'order option id'), text(option.name, 'order option name'), text(option.description, 'order option description'))
+      if (typeof option.id === 'string') {
+        if (ids.has(option.id)) errors.push(`order option ${option.id} appears twice`)
+        ids.add(option.id)
+      }
+      if (option.weaponProficiencies !== undefined) errors.push(textList(option.weaponProficiencies, 'order option weaponProficiencies'))
+      if (option.armorTraining !== undefined) errors.push(textList(option.armorTraining, 'order option armorTraining'))
+      if (option.extraCantrips !== undefined) errors.push(positiveNumber(option.extraCantrips, 'order option extraCantrips'))
+      if (option.skillBonus !== undefined) {
+        const bonus = option.skillBonus
+        if (!isRecord(bonus)) errors.push('order option skillBonus must be an object')
+        else {
+          errors.push(skillList(bonus.skills, 'order option skillBonus.skills'), positiveNumber(bonus.minimum, 'order option skillBonus.minimum'))
+          if (!isAbility(bonus.ability)) errors.push('order option skillBonus.ability must be an ability')
+        }
+      }
+    }
+  }
+  return errors.filter((error): error is string => error !== undefined)
+}
+
+function classFeatureErrors(raw: Raw): string[] {
+  const errors: (string | undefined)[] = []
+
+  const tools = raw.tools
+  if (!isRecord(tools)) errors.push('tools must be an object')
+  else {
+    errors.push(textList(tools.fixed, 'tools.fixed', 0))
+    if (tools.choice !== undefined) {
+      const choice = tools.choice
+      if (!isRecord(choice)) errors.push('tools.choice must be an object')
+      else {
+        errors.push(positiveNumber(choice.count, 'tools.choice.count'))
+        const kindsOk = Array.isArray(choice.kinds) && choice.kinds.length > 0 && choice.kinds.every((kind) => kind === 'artisan' || kind === 'instrument')
+        if (!kindsOk) errors.push('tools.choice.kinds must list "artisan" and/or "instrument"')
+      }
+    }
+  }
+
+  if (raw.unarmoredDefense !== undefined) {
+    const defense = raw.unarmoredDefense
+    if (!isRecord(defense) || !isAbility(defense.ability) || typeof defense.shieldAllowed !== 'boolean') {
+      errors.push('unarmoredDefense needs an ability and shieldAllowed true or false')
+    }
+  }
+  if (raw.invocations !== undefined) {
+    const invocations = raw.invocations
+    if (!isRecord(invocations)) errors.push('invocations must be an object')
+    else errors.push(text(invocations.label, 'invocations.label'), positiveNumber(invocations.count, 'invocations.count'))
+  }
+  if (raw.expertise !== undefined) {
+    errors.push(isRecord(raw.expertise) ? positiveNumber(raw.expertise.skills, 'expertise.skills') : 'expertise must be an object')
+  }
+  const found = errors.filter((error): error is string => error !== undefined)
+  if (raw.order !== undefined) found.push(...orderErrors(raw.order))
+  return found
+}
+
 function classErrors(raw: Raw, armor: Armor[]): string[] {
   const errors = [
     text(raw.primaryAbility, 'primaryAbility'),
@@ -168,7 +251,7 @@ function classErrors(raw: Raw, armor: Armor[]): string[] {
   }
 
   const result = errors.filter((error): error is string => error !== undefined)
-  result.push(...equipmentErrors(raw.startingEquipment, armor))
+  result.push(...equipmentErrors(raw.startingEquipment, armor), ...classFeatureErrors(raw))
   if (raw.spellcasting !== undefined) result.push(...spellcastingErrors(raw.spellcasting))
   return result
 }
@@ -235,6 +318,8 @@ export function validateCatalog(raw: {
   classes: unknown
   armor: unknown
   spells: unknown
+  tools: unknown
+  invocations: unknown
 }): LoadResult {
   const messages: string[] = []
   const sources = loadSources(raw.sources, messages)
@@ -248,6 +333,8 @@ export function validateCatalog(raw: {
     classes: loadEntries<ClassEntry>('class', raw.classes, sources, (entry) => classErrors(entry, armor), messages),
     armor,
     spells: loadEntries<Spell>('spell', raw.spells, sources, spellErrors, messages),
+    tools: loadEntries<Tool>('tool', raw.tools, sources, toolErrors, messages),
+    invocations: loadEntries<Invocation>('invocation', raw.invocations, sources, invocationErrors, messages),
   }
   return { catalog, messages }
 }

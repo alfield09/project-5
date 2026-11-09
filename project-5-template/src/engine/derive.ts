@@ -3,6 +3,7 @@
 import type { Armor, Catalog } from '../catalog/types'
 import { ABILITIES, abilityModifier, type Ability } from './abilityScores'
 import type { BackgroundBonus, Character, Derived, DeriveResult } from './character'
+import { chosenOrder, proficientSkillNames } from './classOptions'
 import { SKILLS, SKILL_NAMES } from './skills'
 
 const MAX_ABILITY_SCORE = 20
@@ -37,11 +38,13 @@ function applyBackgroundBonus(base: Record<Ability, number>, bonus: CompleteBonu
   return scores
 }
 
-function armorClassFor(armor: Armor | undefined, dexModifier: number): number {
-  if (armor === undefined) return 10 + dexModifier // no armor
+function armorClassFor(armor: Armor, dexModifier: number): number {
   const dexPart = armor.dex === 'full' ? dexModifier : armor.dex === 'max2' ? Math.min(dexModifier, 2) : 0
   return armor.armorClass + dexPart
 }
+
+/** A list with repeats removed, keeping the first of each. */
+const unique = (items: string[]) => [...new Set(items)]
 
 export function deriveCharacter(character: Character, catalog: Catalog): DeriveResult {
   const problems: string[] = []
@@ -69,6 +72,23 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
   const shield = equipment?.shield ? catalog.armor.find((entry) => entry.category === 'shield' && entry.edition === character.edition) : undefined
   if (equipment?.armorId !== undefined && armor === undefined) problems.push(`unknown armor "${equipment.armorId}"`)
   if (equipment?.shield && shield === undefined) problems.push('no shield in the catalog')
+
+  // ---- Level 1 choices that change the numbers: the order, and the Warlock's invocation ----
+  const orderRule = classEntry?.order
+  const orderOption = chosenOrder(classEntry, character.orderId)
+  if (orderRule !== undefined && orderOption === undefined) {
+    problems.push(character.orderId ? `unknown ${orderRule.name} "${character.orderId}"` : `choose your ${orderRule.name}`)
+  }
+
+  const invocationRule = classEntry?.invocations
+  const invocationIds = character.invocationIds ?? []
+  const invocations = invocationIds.map((id) => inEdition(catalog.invocations, id))
+  if (invocationRule !== undefined) {
+    const { count, label } = invocationRule
+    if (invocationIds.length !== count) problems.push(count === 1 ? `choose your ${label}` : `choose ${count} ${label}s`)
+    else if (invocations.some((entry) => entry === undefined)) problems.push(`unknown ${label}`)
+    else if (new Set(invocationIds).size !== count) problems.push(`the ${label}s must be different from each other`)
+  }
 
   // ---- Scores and the background bonus ----
   const base = {} as Record<Ability, number>
@@ -105,6 +125,16 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
     if (new Set(picks).size !== picks.length) problems.push('species skills must be different from each other')
   }
 
+  // Expertise (Rogue): the proficiency bonus counts twice for skills the character is already proficient in.
+  const proficientNames = proficientSkillNames(character, catalog)
+  const expertisePicks = character.expertiseSkills ?? []
+  if (classEntry?.expertise !== undefined) {
+    const { skills: count } = classEntry.expertise
+    if (expertisePicks.length !== count) problems.push(`pick exactly ${count} skills for Expertise`)
+    if (expertisePicks.some((skill) => !proficientNames.includes(skill))) problems.push('Expertise must be in skills you are proficient in')
+    if (new Set(expertisePicks).size !== expertisePicks.length) problems.push('Expertise skills must be different from each other')
+  }
+
   if (problems.length > 0 || species === undefined || background === undefined || classEntry === undefined || bonus === undefined) {
     return { ok: false, problems }
   }
@@ -122,20 +152,40 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
     savingThrows[ability] = modifiers[ability] + (classEntry.savingThrows.includes(ability) ? proficiency : 0)
   }
 
-  // A skill counts once even if two sources grant it.
-  const proficientSkills = new Set([...background.skillProficiencies, ...character.classSkills, ...character.speciesSkills])
+  const expertiseNames = classEntry.expertise === undefined ? [] : expertisePicks
   const skills: Record<string, number> = {}
   for (const skill of SKILLS) {
-    skills[skill.name] = modifiers[skill.ability] + (proficientSkills.has(skill.name) ? proficiency : 0)
+    let bonusTotal = modifiers[skill.ability]
+    if (proficientNames.includes(skill.name)) bonusTotal += proficiency
+    if (expertiseNames.includes(skill.name)) bonusTotal += proficiency // Expertise counts the proficiency bonus a second time
+    const orderBonus = orderOption?.skillBonus
+    if (orderBonus?.skills.includes(skill.name)) bonusTotal += Math.max(orderBonus.minimum, modifiers[orderBonus.ability])
+    skills[skill.name] = bonusTotal
   }
 
-  // Armor: AC applies even without training (with penalties the engine does not model); a shield counts only with training.
-  let armorClass = armorClassFor(armor, modifiers.dex)
-  if (armor !== undefined && !classEntry.armorTraining.includes(ARMOR_TRAINING_NAME[armor.category])) {
-    warnings.push(`${classEntry.name} has no training with ${armor.category} armor`)
+  // Training: the class's, plus anything the order adds (the Cleric's Protector, the Druid's Warden).
+  const armorTraining = unique([...classEntry.armorTraining, ...(orderOption?.armorTraining ?? [])])
+  const weaponTraining = unique([...classEntry.weaponProficiencies, ...(orderOption?.weaponProficiencies ?? [])])
+
+  // Armor class. With armor, the armor decides. With none, the best of: 10 + Dexterity, the class's Unarmored Defense
+  // (a Monk loses it with a Shield), and a feature like Armor of Shadows (Mage Armor: 13 + Dexterity). A trained Shield adds 2.
+  let armorClass: number
+  if (armor !== undefined) {
+    armorClass = armorClassFor(armor, modifiers.dex)
+    if (!armorTraining.includes(ARMOR_TRAINING_NAME[armor.category])) {
+      warnings.push(`${classEntry.name} has no training with ${armor.category} armor`)
+    }
+  } else {
+    const candidates = [10 + modifiers.dex]
+    const defense = classEntry.unarmoredDefense
+    if (defense !== undefined && (shield === undefined || defense.shieldAllowed)) candidates.push(10 + modifiers.dex + modifiers[defense.ability])
+    for (const invocation of invocations) {
+      if (invocation?.unarmoredBaseAc !== undefined) candidates.push(invocation.unarmoredBaseAc + modifiers.dex)
+    }
+    armorClass = Math.max(...candidates)
   }
   if (shield !== undefined) {
-    if (classEntry.armorTraining.includes(ARMOR_TRAINING_NAME.shield)) armorClass += shield.armorClass
+    if (armorTraining.includes(ARMOR_TRAINING_NAME.shield)) armorClass += shield.armorClass
     else warnings.push(`${classEntry.name} has no training with shields, so the shield adds no AC`)
   }
 
@@ -152,6 +202,16 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
     attackBonus: modifiers[casting.ability] + proficiency,
     slots: casting.level1.slots,
   }
+
+  // Tools: the background's, the class's fixed ones, and the ones the player picked (only valid picks of an allowed kind).
+  const toolChoice = classEntry.tools.choice
+  const chosenTools = toolChoice === undefined
+    ? []
+    : unique(character.toolIds ?? [])
+        .map((id) => inEdition(catalog.tools, id))
+        .filter((tool) => tool !== undefined && toolChoice.kinds.includes(tool.kind))
+        .slice(0, toolChoice.count)
+        .map((tool) => tool?.name ?? '')
 
   const derived: Derived = {
     finalScores,
@@ -171,11 +231,12 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
     speed,
     darkvision: species.darkvision,
     proficientSaves: ABILITIES.filter((ability) => classEntry.savingThrows.includes(ability)),
-    proficientSkills: SKILLS.map((skill) => skill.name).filter((name) => proficientSkills.has(name)),
+    proficientSkills: proficientNames,
+    expertiseSkills: SKILLS.map((skill) => skill.name).filter((name) => expertiseNames.includes(name)),
     training: {
-      armor: classEntry.armorTraining,
-      weapons: classEntry.weaponProficiencies,
-      tool: background.toolProficiency,
+      armor: armorTraining,
+      weapons: weaponTraining,
+      tools: unique([background.toolProficiency, ...classEntry.tools.fixed, ...chosenTools]),
     },
     spellcasting,
     warnings,

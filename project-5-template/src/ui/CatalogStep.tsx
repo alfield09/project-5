@@ -104,6 +104,13 @@ export default function CatalogStep({ speciesId = '', backgroundId = '', classId
             </li>
             <li>Weapons: {classEntry.weaponProficiencies.join(', ')}</li>
             <li>Armor training: {classEntry.armorTraining.length > 0 ? classEntry.armorTraining.join(', ') : 'None'}</li>
+            {(classEntry.tools.fixed.length > 0 || classEntry.tools.choice) && (
+              <li>
+                Tools: {classEntry.tools.fixed.join(', ')}
+                {classEntry.tools.choice &&
+                  `${classEntry.tools.fixed.length > 0 ? '; ' : ''}choose ${classEntry.tools.choice.count} (${classEntry.tools.choice.kinds.map((kind) => (kind === 'artisan' ? "artisan's tools" : 'musical instruments')).join(' or ')})`}
+              </li>
+            )}
             <li>
               Starting equipment:
               <ul>

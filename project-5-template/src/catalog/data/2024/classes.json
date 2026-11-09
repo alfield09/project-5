@@ -34,6 +34,9 @@
       "Heavy",
       "Shields"
     ],
+    "tools": {
+      "fixed": []
+    },
     "startingEquipment": [
       {
         "id": "A",
@@ -84,6 +87,9 @@
       "Heavy",
       "Shields"
     ],
+    "tools": {
+      "fixed": []
+    },
     "startingEquipment": [
       {
         "id": "A",
@@ -134,6 +140,9 @@
       "Simple"
     ],
     "armorTraining": [],
+    "tools": {
+      "fixed": []
+    },
     "startingEquipment": [
       {
         "id": "A",
@@ -153,6 +162,582 @@
         "slots": [
           2
         ]
+      }
+    }
+  },
+  {
+    "id": "barbarian",
+    "name": "Barbarian",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Strength",
+    "hitDie": 12,
+    "savingThrows": [
+      "str",
+      "con"
+    ],
+    "skillChoices": {
+      "count": 2,
+      "options": [
+        "Animal Handling",
+        "Athletics",
+        "Intimidation",
+        "Nature",
+        "Perception",
+        "Survival"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple",
+      "Martial"
+    ],
+    "armorTraining": [
+      "Light",
+      "Medium",
+      "Shields"
+    ],
+    "tools": {
+      "fixed": []
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "Greataxe, 4 Handaxes, Explorer's Pack, and 15 GP"
+      },
+      {
+        "id": "B",
+        "description": "75 GP"
+      }
+    ],
+    "unarmoredDefense": {
+      "ability": "con",
+      "shieldAllowed": true
+    },
+    "subclassLevel": 3
+  },
+  {
+    "id": "bard",
+    "name": "Bard",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Charisma",
+    "hitDie": 8,
+    "savingThrows": [
+      "dex",
+      "cha"
+    ],
+    "skillChoices": {
+      "count": 3,
+      "options": [
+        "Acrobatics",
+        "Animal Handling",
+        "Arcana",
+        "Athletics",
+        "Deception",
+        "History",
+        "Insight",
+        "Intimidation",
+        "Investigation",
+        "Medicine",
+        "Nature",
+        "Perception",
+        "Performance",
+        "Persuasion",
+        "Religion",
+        "Sleight of Hand",
+        "Stealth",
+        "Survival"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple"
+    ],
+    "armorTraining": [
+      "Light"
+    ],
+    "tools": {
+      "fixed": [],
+      "choice": {
+        "count": 3,
+        "kinds": [
+          "instrument"
+        ]
+      }
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "Leather Armor, 2 Daggers, Musical Instrument of your choice, Entertainer's Pack, and 19 GP",
+        "armorId": "leather"
+      },
+      {
+        "id": "B",
+        "description": "90 GP"
+      }
+    ],
+    "subclassLevel": 3,
+    "spellcasting": {
+      "ability": "cha",
+      "level1": {
+        "cantrips": 2,
+        "preparedSpells": 4,
+        "slots": [
+          2
+        ]
+      }
+    }
+  },
+  {
+    "id": "cleric",
+    "name": "Cleric",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Wisdom",
+    "hitDie": 8,
+    "savingThrows": [
+      "wis",
+      "cha"
+    ],
+    "skillChoices": {
+      "count": 2,
+      "options": [
+        "History",
+        "Insight",
+        "Medicine",
+        "Persuasion",
+        "Religion"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple"
+    ],
+    "armorTraining": [
+      "Light",
+      "Medium",
+      "Shields"
+    ],
+    "tools": {
+      "fixed": []
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack, and 7 GP",
+        "armorId": "chain-shirt",
+        "shield": true
+      },
+      {
+        "id": "B",
+        "description": "110 GP"
+      }
+    ],
+    "order": {
+      "name": "Divine Order",
+      "options": [
+        {
+          "id": "protector",
+          "name": "Protector",
+          "description": "Trained for battle, you gain proficiency with Martial weapons and training with Heavy armor.",
+          "weaponProficiencies": [
+            "Martial"
+          ],
+          "armorTraining": [
+            "Heavy"
+          ]
+        },
+        {
+          "id": "thaumaturge",
+          "name": "Thaumaturge",
+          "description": "You know one extra cantrip from the Cleric spell list. In addition, your mystical connection to the divine gives you a bonus to your Intelligence (Arcana or Religion) checks. The bonus equals your Wisdom modifier (minimum of +1).",
+          "extraCantrips": 1,
+          "skillBonus": {
+            "skills": [
+              "Arcana",
+              "Religion"
+            ],
+            "ability": "wis",
+            "minimum": 1
+          }
+        }
+      ]
+    },
+    "subclassLevel": 3,
+    "spellcasting": {
+      "ability": "wis",
+      "level1": {
+        "cantrips": 3,
+        "preparedSpells": 4,
+        "slots": [
+          2
+        ]
+      }
+    }
+  },
+  {
+    "id": "druid",
+    "name": "Druid",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Wisdom",
+    "hitDie": 8,
+    "savingThrows": [
+      "int",
+      "wis"
+    ],
+    "skillChoices": {
+      "count": 2,
+      "options": [
+        "Animal Handling",
+        "Arcana",
+        "Insight",
+        "Medicine",
+        "Nature",
+        "Perception",
+        "Religion",
+        "Survival"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple"
+    ],
+    "armorTraining": [
+      "Light",
+      "Shields"
+    ],
+    "tools": {
+      "fixed": [
+        "Herbalism Kit"
+      ]
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "Leather Armor, Shield, Sickle, Druidic Focus (Quarterstaff), Explorer's Pack, Herbalism Kit, and 9 GP",
+        "armorId": "leather",
+        "shield": true
+      },
+      {
+        "id": "B",
+        "description": "50 GP"
+      }
+    ],
+    "order": {
+      "name": "Primal Order",
+      "options": [
+        {
+          "id": "magician",
+          "name": "Magician",
+          "description": "You know one extra cantrip from the Druid spell list. In addition, your mystical connection to nature gives you a bonus to your Intelligence (Arcana or Nature) checks. The bonus equals your Wisdom modifier (minimum bonus of +1).",
+          "extraCantrips": 1,
+          "skillBonus": {
+            "skills": [
+              "Arcana",
+              "Nature"
+            ],
+            "ability": "wis",
+            "minimum": 1
+          }
+        },
+        {
+          "id": "warden",
+          "name": "Warden",
+          "description": "Trained for battle, you gain proficiency with Martial weapons and training with Medium armor.",
+          "weaponProficiencies": [
+            "Martial"
+          ],
+          "armorTraining": [
+            "Medium"
+          ]
+        }
+      ]
+    },
+    "subclassLevel": 3,
+    "spellcasting": {
+      "ability": "wis",
+      "level1": {
+        "cantrips": 2,
+        "preparedSpells": 4,
+        "slots": [
+          2
+        ]
+      }
+    }
+  },
+  {
+    "id": "monk",
+    "name": "Monk",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Dexterity and Wisdom",
+    "hitDie": 8,
+    "savingThrows": [
+      "str",
+      "dex"
+    ],
+    "skillChoices": {
+      "count": 2,
+      "options": [
+        "Acrobatics",
+        "Athletics",
+        "History",
+        "Insight",
+        "Religion",
+        "Stealth"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple",
+      "Martial weapons that have the Light property"
+    ],
+    "armorTraining": [],
+    "tools": {
+      "fixed": [],
+      "choice": {
+        "count": 1,
+        "kinds": [
+          "artisan",
+          "instrument"
+        ]
+      }
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "Spear, 5 Daggers, Artisan's Tools or Musical Instrument chosen for the tool proficiency above, Explorer's Pack, and 11 GP"
+      },
+      {
+        "id": "B",
+        "description": "50 GP"
+      }
+    ],
+    "unarmoredDefense": {
+      "ability": "wis",
+      "shieldAllowed": false
+    },
+    "subclassLevel": 3
+  },
+  {
+    "id": "ranger",
+    "name": "Ranger",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Dexterity and Wisdom",
+    "hitDie": 10,
+    "savingThrows": [
+      "str",
+      "dex"
+    ],
+    "skillChoices": {
+      "count": 3,
+      "options": [
+        "Animal Handling",
+        "Athletics",
+        "Insight",
+        "Investigation",
+        "Nature",
+        "Perception",
+        "Stealth",
+        "Survival"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple",
+      "Martial"
+    ],
+    "armorTraining": [
+      "Light",
+      "Medium",
+      "Shields"
+    ],
+    "tools": {
+      "fixed": []
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Druidic Focus (sprig of mistletoe), Explorer's Pack, and 7 GP",
+        "armorId": "studded-leather"
+      },
+      {
+        "id": "B",
+        "description": "150 GP"
+      }
+    ],
+    "subclassLevel": 3,
+    "spellcasting": {
+      "ability": "wis",
+      "level1": {
+        "cantrips": 0,
+        "preparedSpells": 2,
+        "slots": [
+          2
+        ]
+      }
+    }
+  },
+  {
+    "id": "rogue",
+    "name": "Rogue",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Dexterity",
+    "hitDie": 8,
+    "savingThrows": [
+      "dex",
+      "int"
+    ],
+    "skillChoices": {
+      "count": 4,
+      "options": [
+        "Acrobatics",
+        "Athletics",
+        "Deception",
+        "Insight",
+        "Intimidation",
+        "Investigation",
+        "Perception",
+        "Persuasion",
+        "Sleight of Hand",
+        "Stealth"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple",
+      "Martial weapons that have the Finesse or Light property"
+    ],
+    "armorTraining": [
+      "Light"
+    ],
+    "tools": {
+      "fixed": [
+        "Thieves' Tools"
+      ]
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "Leather Armor, 2 Daggers, Shortsword, Shortbow, 20 Arrows, Quiver, Thieves' Tools, Burglar's Pack, and 8 GP",
+        "armorId": "leather"
+      },
+      {
+        "id": "B",
+        "description": "100 GP"
+      }
+    ],
+    "expertise": {
+      "skills": 2
+    },
+    "subclassLevel": 3
+  },
+  {
+    "id": "warlock",
+    "name": "Warlock",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Charisma",
+    "hitDie": 8,
+    "savingThrows": [
+      "wis",
+      "cha"
+    ],
+    "skillChoices": {
+      "count": 2,
+      "options": [
+        "Arcana",
+        "Deception",
+        "History",
+        "Intimidation",
+        "Investigation",
+        "Nature",
+        "Religion"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple"
+    ],
+    "armorTraining": [
+      "Light"
+    ],
+    "tools": {
+      "fixed": []
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "Leather Armor, Sickle, 2 Daggers, Arcane Focus (orb), Book (occult lore), Scholar's Pack, and 15 GP",
+        "armorId": "leather"
+      },
+      {
+        "id": "B",
+        "description": "100 GP"
+      }
+    ],
+    "invocations": {
+      "label": "Eldritch Invocation",
+      "count": 1
+    },
+    "subclassLevel": 3,
+    "spellcasting": {
+      "ability": "cha",
+      "level1": {
+        "cantrips": 2,
+        "preparedSpells": 2,
+        "slots": [
+          1
+        ]
+      }
+    }
+  },
+  {
+    "id": "wizard",
+    "name": "Wizard",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Intelligence",
+    "hitDie": 6,
+    "savingThrows": [
+      "int",
+      "wis"
+    ],
+    "skillChoices": {
+      "count": 2,
+      "options": [
+        "Arcana",
+        "History",
+        "Insight",
+        "Investigation",
+        "Medicine",
+        "Nature",
+        "Religion"
+      ]
+    },
+    "weaponProficiencies": [
+      "Simple"
+    ],
+    "armorTraining": [],
+    "tools": {
+      "fixed": []
+    },
+    "startingEquipment": [
+      {
+        "id": "A",
+        "description": "2 Daggers, Arcane Focus (Quarterstaff), Robe, Spellbook, Scholar's Pack, and 5 GP"
+      },
+      {
+        "id": "B",
+        "description": "55 GP"
+      }
+    ],
+    "subclassLevel": 3,
+    "spellcasting": {
+      "ability": "int",
+      "level1": {
+        "cantrips": 3,
+        "preparedSpells": 4,
+        "slots": [
+          2
+        ],
+        "spellbookSpells": 6
       }
     }
   }

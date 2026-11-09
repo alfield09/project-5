@@ -43,6 +43,7 @@ const goodClass = {
   skillChoices: { count: 2, options: ['Athletics', 'History'] },
   weaponProficiencies: ['Simple'],
   armorTraining: [],
+  tools: { fixed: [] },
   startingEquipment: [{ id: 'A', description: 'Stuff' }],
   subclassLevel: 3,
 }
@@ -73,7 +74,7 @@ const goodArmor = {
   strength: 13,
 }
 
-function load(overrides: Partial<Record<'sources' | 'species' | 'backgrounds' | 'classes' | 'armor' | 'spells', unknown>> = {}) {
+function load(overrides: Partial<Record<'sources' | 'species' | 'backgrounds' | 'classes' | 'armor' | 'spells' | 'tools' | 'invocations', unknown>> = {}) {
   return validateCatalog({
     sources: [source],
     species: [goodSpecies],
@@ -81,6 +82,8 @@ function load(overrides: Partial<Record<'sources' | 'species' | 'backgrounds' | 
     classes: [goodClass],
     armor: [goodArmor],
     spells: [goodSpell],
+    tools: [],
+    invocations: [],
     ...overrides,
   })
 }
@@ -228,6 +231,66 @@ describe('validateCatalog', () => {
 
     test('a cantrip has level 0', () => {
       expect(load({ spells: [{ ...goodSpell, level: 0 }] }).catalog.spells).toHaveLength(1)
+    })
+  })
+
+  describe('class features and tools', () => {
+    const withClass = (changes: Record<string, unknown>) => load({ classes: [{ ...goodClass, ...changes }] })
+
+    test('a class with no tools object is rejected', () => {
+      expect(withClass({ tools: undefined }).catalog.classes).toHaveLength(0)
+    })
+
+    test('tool choices must name real kinds and a positive count', () => {
+      expect(withClass({ tools: { fixed: [], choice: { count: 3, kinds: ['instrument'] } } }).catalog.classes).toHaveLength(1)
+      expect(withClass({ tools: { fixed: [], choice: { count: 0, kinds: ['instrument'] } } }).catalog.classes).toHaveLength(0)
+      expect(withClass({ tools: { fixed: [], choice: { count: 1, kinds: ['weapon'] } } }).catalog.classes).toHaveLength(0)
+      expect(withClass({ tools: { fixed: [], choice: { count: 1, kinds: [] } } }).catalog.classes).toHaveLength(0)
+    })
+
+    test('a tool entry needs a kind', () => {
+      const tool = { id: 'flute', name: 'Flute', edition: '2024', source: 'test-source', kind: 'instrument' }
+      expect(load({ tools: [tool] }).catalog.tools).toHaveLength(1)
+      expect(load({ tools: [{ ...tool, kind: 'weapon' }] }).catalog.tools).toHaveLength(0)
+    })
+
+    test('unarmored defense needs an ability and a shield rule', () => {
+      expect(withClass({ unarmoredDefense: { ability: 'con', shieldAllowed: true } }).catalog.classes).toHaveLength(1)
+      expect(withClass({ unarmoredDefense: { ability: 'luck', shieldAllowed: true } }).catalog.classes).toHaveLength(0)
+      expect(withClass({ unarmoredDefense: { ability: 'con' } }).catalog.classes).toHaveLength(0)
+    })
+
+    test('expertise needs a positive count', () => {
+      expect(withClass({ expertise: { skills: 2 } }).catalog.classes).toHaveLength(1)
+      expect(withClass({ expertise: { skills: 0 } }).catalog.classes).toHaveLength(0)
+    })
+
+    test('an order needs at least two options with unique ids, and well-formed effects', () => {
+      const option = (id: string, extra: Record<string, unknown> = {}) => ({ id, name: id, description: 'Text.', ...extra })
+      const order = (options: unknown[]) => ({ name: 'Divine Order', options })
+      expect(withClass({ order: order([option('a'), option('b', { extraCantrips: 1, skillBonus: { skills: ['Arcana'], ability: 'wis', minimum: 1 } })]) }).catalog.classes).toHaveLength(1)
+      expect(withClass({ order: order([option('a')]) }).catalog.classes).toHaveLength(0)
+      expect(withClass({ order: order([option('a'), option('a')]) }).catalog.classes).toHaveLength(0)
+      expect(withClass({ order: order([option('a'), option('b', { skillBonus: { skills: ['Basketweaving'], ability: 'wis', minimum: 1 } })]) }).catalog.classes).toHaveLength(0)
+      expect(withClass({ order: order([option('a'), option('b', { extraCantrips: 'one' })]) }).catalog.classes).toHaveLength(0)
+    })
+
+    test('invocations: a class may pick them, and an entry needs a description', () => {
+      expect(withClass({ invocations: { label: 'Eldritch Invocation', count: 1 } }).catalog.classes).toHaveLength(1)
+      expect(withClass({ invocations: { label: '', count: 1 } }).catalog.classes).toHaveLength(0)
+      expect(withClass({ invocations: { label: 'Eldritch Invocation', count: 0 } }).catalog.classes).toHaveLength(0)
+
+      const entry = { id: 'armor-of-shadows', name: 'Armor of Shadows', edition: '2024', source: 'test-source', description: 'Mage Armor at will.', unarmoredBaseAc: 13 }
+      expect(load({ invocations: [entry] }).catalog.invocations).toHaveLength(1)
+      expect(load({ invocations: [{ ...entry, description: '' }] }).catalog.invocations).toHaveLength(0)
+      expect(load({ invocations: [{ ...entry, unarmoredBaseAc: 'thirteen' }] }).catalog.invocations).toHaveLength(0)
+    })
+
+    test('a spellbook size must be a positive whole number', () => {
+      const casting = (spellbookSpells: unknown) => ({ ability: 'int', level1: { cantrips: 3, preparedSpells: 4, slots: [2], spellbookSpells } })
+      expect(withClass({ spellcasting: casting(6) }).catalog.classes).toHaveLength(1)
+      expect(withClass({ spellcasting: casting(0) }).catalog.classes).toHaveLength(0)
+      expect(withClass({ spellcasting: casting('six') }).catalog.classes).toHaveLength(0)
     })
   })
 

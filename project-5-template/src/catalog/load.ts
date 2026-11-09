@@ -4,8 +4,10 @@ import sources from './data/sources.json'
 import armor2024 from './data/2024/armor.json'
 import backgrounds2024 from './data/2024/backgrounds.json'
 import classes2024 from './data/2024/classes.json'
+import invocations2024 from './data/2024/invocations.json'
 import species2024 from './data/2024/species.json'
 import spells2024 from './data/2024/spells.json'
+import tools2024 from './data/2024/tools.json'
 import { validateCatalog } from './validate'
 
 const result = validateCatalog({
@@ -15,6 +17,8 @@ const result = validateCatalog({
   classes: classes2024,
   armor: armor2024,
   spells: spells2024,
+  tools: tools2024,
+  invocations: invocations2024,
 })
 
 export const catalog = result.catalog

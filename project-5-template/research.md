@@ -63,6 +63,14 @@ Record consequential changes to the approved scope: what changed, why, and what 
 - Cut or moved: nothing cut yet. Pitch edited Nov 1 to place the creator and pack import/export in Phase 3 (with JSON export); the Developer still decides what is cut if Phase 3 slips.
 - Pitch updated to match (Concept, Technical goals, five-week map, stretch goals, risks). `spec.md` has no content on this yet.
 
+**Nov 9: 2024 rules only for now; the second edition is deferred.**
+- Changed: the pitch's Phase 3 includes "second edition" (2014). The Developer decided to stay with the 2024 rules for now and to add the other nine classes instead.
+- Why: the project is behind the pitch's schedule, and more classes make the one edition more useful sooner. The two-edition data model, which the pitch names as the main technical challenge, stays untested for now.
+- Cut or moved: the 2014 rules module, the SRD 5.1 data, and the 2014 background and species rules (ability bonuses from the species) move to a later phase, to be done only if time allows. Nothing else was cut.
+- Kept: the shared character model with per-edition rules modules (an `edition` field on every entry), so the 2014 rules can still be added without restructuring. The SRD 5.1 license and credit text stay in the credits notes.
+- Added: the nine remaining SRD 5.2.1 classes at level 1 (Barbarian, Bard, Cleric, Druid, Monk, Ranger, Rogue, Warlock, Wizard).
+- Still to update: `spec.md` (the 2014 parts of the intended behavior) once the classes are built, and the pitch's description, which is already submitted and so is not edited.
+
 ## Sources and credits
 
 List every external source, code library, asset, and dataset you use, with its link, license or usage terms, and required credit.
@@ -76,6 +84,7 @@ Status key: **Read** = the Developer or Agent read the primary document. **To ve
 - License: CC-BY-4.0, https://creativecommons.org/licenses/by/4.0/legalcode
 - Status: license and attribution text **Read** in the PDF's Legal Information page (Agent read it; Developer to confirm).
 - Contents found: 9 species, 12 classes with 1 subclass each, 4 backgrounds. Counts to be spot-checked by the Developer.
+- Classes, tools and invocations: the twelve classes (level 1), the 17 artisan's tools and 10 musical instruments, and the five Warlock invocations with no level requirement come from the same SRD 5.2.1 PDF and use the same credit. The invocation text was extracted by a script (`tools` notes in plan.md); the class tables were read from the PDF by hand, and the Warlock's level 1 slot count was decoded from a jumbled table and still needs the Developer's check.
 - Spells: all 339 spells in the SRD 5.2.1 are in the catalog, extracted from the PDF text by `tools/extract-spells.mjs` (text only; see plan.md for how it was checked). One inconsistency in the SRD itself: the class spell lists omit Mind Spike (Sorcerer) and Phantasmal Force (Bard, Sorcerer, Wizard), though those spells' own entries name those classes; the catalog follows the spells' own entries. Five spells had a sentence split across a page break in the PDF text; the extraction rejoins them (a hand-checked list in the script) and nothing else is merged.
 - Required credit, to appear in the site and in PDF exports (wording from the SRD; do not add other attribution to Wizards):
 

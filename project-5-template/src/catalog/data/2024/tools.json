@@ -1,0 +1,191 @@
+[
+  {
+    "id": "alchemists-supplies",
+    "name": "Alchemist's Supplies",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "brewers-supplies",
+    "name": "Brewer's Supplies",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "calligraphers-supplies",
+    "name": "Calligrapher's Supplies",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "carpenters-tools",
+    "name": "Carpenter's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "cartographers-tools",
+    "name": "Cartographer's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "cobblers-tools",
+    "name": "Cobbler's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "cooks-utensils",
+    "name": "Cook's Utensils",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "glassblowers-tools",
+    "name": "Glassblower's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "jewelers-tools",
+    "name": "Jeweler's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "leatherworkers-tools",
+    "name": "Leatherworker's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "masons-tools",
+    "name": "Mason's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "painters-supplies",
+    "name": "Painter's Supplies",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "potters-tools",
+    "name": "Potter's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "smiths-tools",
+    "name": "Smith's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "tinkers-tools",
+    "name": "Tinker's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "weavers-tools",
+    "name": "Weaver's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "woodcarvers-tools",
+    "name": "Woodcarver's Tools",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "artisan"
+  },
+  {
+    "id": "bagpipes",
+    "name": "Bagpipes",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "drum",
+    "name": "Drum",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "dulcimer",
+    "name": "Dulcimer",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "flute",
+    "name": "Flute",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "horn",
+    "name": "Horn",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "lute",
+    "name": "Lute",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "lyre",
+    "name": "Lyre",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "pan-flute",
+    "name": "Pan Flute",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "shawm",
+    "name": "Shawm",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  },
+  {
+    "id": "viol",
+    "name": "Viol",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "kind": "instrument"
+  }
+]

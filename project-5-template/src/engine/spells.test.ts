@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { catalog } from '../catalog/load'
-import { countPicks, needsSpellAttack, pickedSpells, savingThrowAbilities, spellLimits, spellOptions } from './spells'
+import { chosenOrder } from './classOptions'
+import { countPicks, needsSpellAttack, pickedSpells, savingThrowAbilities, spellLimits, spellOptions, spellbookOptions } from './spells'
 
 const byId = (id: string) => catalog.classes.find((entry) => entry.id === id)
 const names = (list: { name: string }[]) => list.map((spell) => spell.name)
@@ -163,5 +164,76 @@ describe('which spells call for a saving throw against the caster save DC', () =
 
   test('133 of the 339 SRD spells call for a save', () => {
     expect(catalog.spells.filter((spell) => savingThrowAbilities(spell).length > 0)).toHaveLength(133)
+  })
+})
+
+describe('limits for the other casters (SRD 5.2.1 class tables)', () => {
+  test('each class at level 1', () => {
+    expect(spellLimits(byId('bard'))).toEqual({ cantrips: 2, spells: 4, maxSpellLevel: 1, spellbook: undefined })
+    expect(spellLimits(byId('cleric'))).toEqual({ cantrips: 3, spells: 4, maxSpellLevel: 1, spellbook: undefined })
+    expect(spellLimits(byId('druid'))).toEqual({ cantrips: 2, spells: 4, maxSpellLevel: 1, spellbook: undefined })
+    expect(spellLimits(byId('ranger'))).toEqual({ cantrips: 0, spells: 2, maxSpellLevel: 1, spellbook: undefined })
+    expect(spellLimits(byId('warlock'))).toEqual({ cantrips: 2, spells: 2, maxSpellLevel: 1, spellbook: undefined })
+    expect(spellLimits(byId('wizard'))).toEqual({ cantrips: 3, spells: 4, maxSpellLevel: 1, spellbook: 6 })
+    for (const id of ['barbarian', 'monk', 'rogue']) expect(spellLimits(byId(id)), id).toBeUndefined()
+  })
+
+  test('the Thaumaturge and the Magician each add one cantrip; Protector and Warden add none', () => {
+    const cleric = byId('cleric')
+    const druid = byId('druid')
+    expect(spellLimits(cleric, chosenOrder(cleric, 'thaumaturge'))?.cantrips).toBe(4)
+    expect(spellLimits(cleric, chosenOrder(cleric, 'protector'))?.cantrips).toBe(3)
+    expect(spellLimits(druid, chosenOrder(druid, 'magician'))?.cantrips).toBe(3)
+    expect(spellLimits(druid, chosenOrder(druid, 'warden'))?.cantrips).toBe(2)
+    expect(spellLimits(cleric)?.cantrips).toBe(3) // no order chosen yet
+  })
+})
+
+describe('options for the other casters', () => {
+  test('the Ranger has no cantrips and picks from its level 1 spells', () => {
+    const options = spellOptions(byId('ranger'), catalog)
+    expect(options.every((spell) => spell.level === 1)).toBe(true)
+    expect(names(options)).toContain('Hunter\'s Mark')
+    expect(names(options)).toContain('Cure Wounds')
+  })
+
+  test('Warlock cantrips include Eldritch Blast', () => {
+    expect(names(spellOptions(byId('warlock'), catalog).filter((spell) => spell.level === 0))).toContain('Eldritch Blast')
+  })
+
+  test('each caster lists only its own spells', () => {
+    for (const id of ['bard', 'cleric', 'druid', 'ranger', 'warlock', 'wizard']) {
+      const options = spellOptions(byId(id), catalog, catalog.spells.map((spell) => spell.id))
+      expect(options.length, id).toBeGreaterThan(0)
+      expect(options.every((spell) => spell.classes.includes(id)), id).toBe(true)
+      expect(options.every((spell) => spell.level <= 1), id).toBe(true)
+    }
+  })
+})
+
+describe('the Wizard spellbook', () => {
+  const wizard = byId('wizard')
+
+  test('the spellbook may hold any level 1 Wizard spell, and no cantrips', () => {
+    const options = spellbookOptions(wizard, catalog)
+    expect(options.length).toBeGreaterThan(10)
+    expect(options.every((spell) => spell.level === 1 && spell.classes.includes('wizard'))).toBe(true)
+    expect(names(options)).toEqual(expect.arrayContaining(['Detect Magic', 'Feather Fall', 'Mage Armor', 'Magic Missile', 'Sleep', 'Thunderwave']))
+  })
+
+  test('only a class with a spellbook has spellbook options', () => {
+    expect(spellbookOptions(byId('sorcerer'), catalog)).toEqual([])
+    expect(spellbookOptions(byId('cleric'), catalog)).toEqual([])
+    expect(spellbookOptions(undefined, catalog)).toEqual([])
+  })
+
+  test('prepared spells come from the spellbook, cantrips from the whole list', () => {
+    const none = spellOptions(wizard, catalog, [])
+    expect(none.every((spell) => spell.level === 0)).toBe(true) // nothing prepared until the book has spells
+    expect(none.length).toBeGreaterThan(10)
+
+    const withBook = spellOptions(wizard, catalog, ['magic-missile', 'sleep'])
+    expect(names(withBook.filter((spell) => spell.level === 1))).toEqual(['Magic Missile', 'Sleep'])
+    expect(withBook.filter((spell) => spell.level === 0)).toHaveLength(none.length)
   })
 })

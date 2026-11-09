@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { catalog } from '../catalog/load'
 import type { Character } from '../engine/character'
 import { deriveCharacter } from '../engine/derive'
+import { chosenOrder } from '../engine/classOptions'
 import { countPicks, needsSpellAttack, pickedSpells, savingThrowAbilities, spellLimits } from '../engine/spells'
 import { ABILITY_NAMES, formatModifier, levelLabel } from './labels'
 import SpellDetails from './SpellDetails'
@@ -16,7 +17,7 @@ export default function SpellsTab({ character, onRoll }: { character: Character;
   const result = useMemo(() => deriveCharacter(character, catalog), [character])
 
   const classEntry = catalog.classes.find((entry) => entry.id === character.classId)
-  const limits = spellLimits(classEntry)
+  const limits = spellLimits(classEntry, chosenOrder(classEntry, character.orderId))
   const picks = character.spellIds ?? []
   const chosen = pickedSpells(picks, catalog)
   const counts = countPicks(picks, catalog)

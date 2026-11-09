@@ -7,12 +7,14 @@ describe('SRD 5.2.1 catalog', () => {
     expect(catalogMessages).toEqual([])
   })
 
-  test('has the 9 species, 4 backgrounds and 3 classes', () => {
+  test('has the 9 species, 4 backgrounds and all 12 classes', () => {
     expect(catalog.species.map((entry) => entry.id).sort()).toEqual([
       'dragonborn', 'dwarf', 'elf', 'gnome', 'goliath', 'halfling', 'human', 'orc', 'tiefling',
     ])
     expect(catalog.backgrounds.map((entry) => entry.id).sort()).toEqual(['acolyte', 'criminal', 'sage', 'soldier'])
-    expect(catalog.classes.map((entry) => entry.id).sort()).toEqual(['fighter', 'paladin', 'sorcerer'])
+    expect(catalog.classes.map((entry) => entry.id).sort()).toEqual([
+      'barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard',
+    ])
   })
 
   test('armor matches the SRD Armor table', () => {
@@ -124,6 +126,129 @@ describe('SRD 5.2.1 catalog', () => {
     expect(byId.fighter.startingEquipment[2].description).toBe('155 GP')
     expect(byId.paladin.startingEquipment[1].description).toBe('150 GP')
     expect(byId.sorcerer.startingEquipment[1].description).toBe('50 GP')
+  })
+
+  describe('the twelve classes match the SRD core tables', () => {
+    const byId = () => Object.fromEntries(catalog.classes.map((entry) => [entry.id, entry]))
+
+    test('hit die, saving throws, skill choices and training', () => {
+      // id: [hit die, saves, number of skills to pick, armor training, weapon proficiencies]
+      const expected: Record<string, [number, string[], number, string[], string[]]> = {
+        barbarian: [12, ['str', 'con'], 2, ['Light', 'Medium', 'Shields'], ['Simple', 'Martial']],
+        bard: [8, ['dex', 'cha'], 3, ['Light'], ['Simple']],
+        cleric: [8, ['wis', 'cha'], 2, ['Light', 'Medium', 'Shields'], ['Simple']],
+        druid: [8, ['int', 'wis'], 2, ['Light', 'Shields'], ['Simple']],
+        fighter: [10, ['str', 'con'], 2, ['Light', 'Medium', 'Heavy', 'Shields'], ['Simple', 'Martial']],
+        monk: [8, ['str', 'dex'], 2, [], ['Simple', 'Martial weapons that have the Light property']],
+        paladin: [10, ['wis', 'cha'], 2, ['Light', 'Medium', 'Heavy', 'Shields'], ['Simple', 'Martial']],
+        ranger: [10, ['str', 'dex'], 3, ['Light', 'Medium', 'Shields'], ['Simple', 'Martial']],
+        rogue: [8, ['dex', 'int'], 4, ['Light'], ['Simple', 'Martial weapons that have the Finesse or Light property']],
+        sorcerer: [6, ['con', 'cha'], 2, [], ['Simple']],
+        warlock: [8, ['wis', 'cha'], 2, ['Light'], ['Simple']],
+        wizard: [6, ['int', 'wis'], 2, [], ['Simple']],
+      }
+      const classes = byId()
+      for (const [id, [hitDie, saves, skillCount, armor, weapons]] of Object.entries(expected)) {
+        expect(classes[id], id).toMatchObject({ hitDie, savingThrows: saves, armorTraining: armor, weaponProficiencies: weapons })
+        expect(classes[id].skillChoices.count, id).toBe(skillCount)
+        expect(classes[id].subclassLevel, id).toBe(3)
+      }
+    })
+
+    test('skill lists', () => {
+      const classes = byId()
+      expect(classes.barbarian.skillChoices.options).toEqual(['Animal Handling', 'Athletics', 'Intimidation', 'Nature', 'Perception', 'Survival'])
+      expect(classes.cleric.skillChoices.options).toEqual(['History', 'Insight', 'Medicine', 'Persuasion', 'Religion'])
+      expect(classes.monk.skillChoices.options).toEqual(['Acrobatics', 'Athletics', 'History', 'Insight', 'Religion', 'Stealth'])
+      expect(classes.rogue.skillChoices.options).toHaveLength(10)
+      expect(classes.bard.skillChoices.options).toHaveLength(18) // "Choose any 3 skills"
+    })
+
+    test('the starting equipment packages, and which of them include armor or a shield', () => {
+      const classes = byId()
+      const packages = (id: string) => classes[id].startingEquipment.map((option) => [option.id, option.armorId ?? null, option.shield ?? false])
+      expect(packages('barbarian')).toEqual([['A', null, false], ['B', null, false]]) // Greataxe and Handaxes, no armor
+      expect(packages('bard')).toEqual([['A', 'leather', false], ['B', null, false]])
+      expect(packages('cleric')).toEqual([['A', 'chain-shirt', true], ['B', null, false]])
+      expect(packages('druid')).toEqual([['A', 'leather', true], ['B', null, false]])
+      expect(packages('monk')).toEqual([['A', null, false], ['B', null, false]])
+      expect(packages('ranger')).toEqual([['A', 'studded-leather', false], ['B', null, false]])
+      expect(packages('rogue')).toEqual([['A', 'leather', false], ['B', null, false]])
+      expect(packages('warlock')).toEqual([['A', 'leather', false], ['B', null, false]])
+      expect(packages('wizard')).toEqual([['A', null, false], ['B', null, false]])
+      expect(classes.barbarian.startingEquipment[1].description).toBe('75 GP')
+      expect(classes.cleric.startingEquipment[1].description).toBe('110 GP')
+      expect(classes.ranger.startingEquipment[1].description).toBe('150 GP')
+    })
+
+    test('level 1 spellcasting of every class', () => {
+      const classes = byId()
+      const casting = (id: string) => classes[id].spellcasting
+      expect(casting('bard')).toEqual({ ability: 'cha', level1: { cantrips: 2, preparedSpells: 4, slots: [2] } })
+      expect(casting('cleric')).toEqual({ ability: 'wis', level1: { cantrips: 3, preparedSpells: 4, slots: [2] } })
+      expect(casting('druid')).toEqual({ ability: 'wis', level1: { cantrips: 2, preparedSpells: 4, slots: [2] } })
+      expect(casting('ranger')).toEqual({ ability: 'wis', level1: { cantrips: 0, preparedSpells: 2, slots: [2] } })
+      expect(casting('warlock')).toEqual({ ability: 'cha', level1: { cantrips: 2, preparedSpells: 2, slots: [1] } }) // Pact Magic: one level 1 slot
+      expect(casting('wizard')).toEqual({ ability: 'int', level1: { cantrips: 3, preparedSpells: 4, slots: [2], spellbookSpells: 6 } })
+      for (const id of ['barbarian', 'fighter', 'monk', 'rogue']) expect(casting(id), id).toBeUndefined()
+    })
+
+    test('tool proficiencies', () => {
+      const classes = byId()
+      expect(classes.rogue.tools).toEqual({ fixed: ["Thieves' Tools"] })
+      expect(classes.druid.tools).toEqual({ fixed: ['Herbalism Kit'] })
+      expect(classes.bard.tools).toEqual({ fixed: [], choice: { count: 3, kinds: ['instrument'] } })
+      expect(classes.monk.tools).toEqual({ fixed: [], choice: { count: 1, kinds: ['artisan', 'instrument'] } })
+      for (const id of ['barbarian', 'cleric', 'fighter', 'paladin', 'ranger', 'sorcerer', 'warlock', 'wizard']) {
+        expect(classes[id].tools, id).toEqual({ fixed: [] })
+      }
+    })
+
+    test('level 1 features that change the sheet numbers', () => {
+      const classes = byId()
+      expect(classes.barbarian.unarmoredDefense).toEqual({ ability: 'con', shieldAllowed: true })
+      expect(classes.monk.unarmoredDefense).toEqual({ ability: 'wis', shieldAllowed: false })
+      expect(classes.rogue.expertise).toEqual({ skills: 2 })
+
+      expect(classes.cleric.order?.name).toBe('Divine Order')
+      const [protector, thaumaturge] = classes.cleric.order?.options ?? []
+      expect(protector).toMatchObject({ id: 'protector', weaponProficiencies: ['Martial'], armorTraining: ['Heavy'] })
+      expect(thaumaturge).toMatchObject({ id: 'thaumaturge', extraCantrips: 1, skillBonus: { skills: ['Arcana', 'Religion'], ability: 'wis', minimum: 1 } })
+
+      expect(classes.druid.order?.name).toBe('Primal Order')
+      const [magician, warden] = classes.druid.order?.options ?? []
+      expect(magician).toMatchObject({ id: 'magician', extraCantrips: 1, skillBonus: { skills: ['Arcana', 'Nature'], ability: 'wis', minimum: 1 } })
+      expect(warden).toMatchObject({ id: 'warden', weaponProficiencies: ['Martial'], armorTraining: ['Medium'] })
+
+      // no other class has these features
+      for (const id of ['bard', 'fighter', 'paladin', 'ranger', 'sorcerer', 'warlock', 'wizard']) {
+        expect(classes[id].unarmoredDefense, id).toBeUndefined()
+        expect(classes[id].expertise, id).toBeUndefined()
+        expect(classes[id].order, id).toBeUndefined()
+      }
+    })
+  })
+
+  test('the Warlock picks one invocation, from the five with no level requirement', () => {
+    expect(catalog.classes.find((entry) => entry.id === 'warlock')?.invocations).toEqual({ label: 'Eldritch Invocation', count: 1 })
+    expect(catalog.classes.filter((entry) => entry.invocations !== undefined)).toHaveLength(1)
+
+    expect(catalog.invocations.map((entry) => entry.id)).toEqual(['armor-of-shadows', 'eldritch-mind', 'pact-of-the-blade', 'pact-of-the-chain', 'pact-of-the-tome'])
+    const byId = Object.fromEntries(catalog.invocations.map((entry) => [entry.id, entry]))
+    expect(byId['armor-of-shadows']).toMatchObject({ unarmoredBaseAc: 13, description: 'You can cast Mage Armor on yourself without expending a spell slot.' })
+    expect(catalog.invocations.filter((entry) => entry.unarmoredBaseAc !== undefined)).toHaveLength(1) // only Armor of Shadows changes AC
+    expect(byId['pact-of-the-tome'].description).toContain('choose three cantrips, and choose two level 1 spells that have the Ritual tag')
+    expect(byId['pact-of-the-tome'].description).not.toContain('The\nbook') // the page-break split is joined
+  })
+
+  test('the tool lists: 17 artisan tools and 10 musical instruments', () => {
+    const artisan = catalog.tools.filter((tool) => tool.kind === 'artisan').map((tool) => tool.name)
+    const instruments = catalog.tools.filter((tool) => tool.kind === 'instrument').map((tool) => tool.name)
+    expect(artisan).toHaveLength(17)
+    expect(artisan).toContain("Alchemist's Supplies")
+    expect(artisan).toContain("Woodcarver's Tools")
+    expect(instruments).toEqual(['Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Horn', 'Lute', 'Lyre', 'Pan Flute', 'Shawm', 'Viol'])
+    expect(new Set(catalog.tools.map((tool) => tool.id)).size).toBe(27)
   })
 
   test('level 1 spellcasting matches the SRD class tables', () => {
