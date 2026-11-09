@@ -1,4 +1,4 @@
-/* Minimal base styles; Sheetforge colors and type are decided when the first real screens are built. */
+/* Plain base styles. Sheetforge colors and type are decided when the first real screens are styled. */
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
@@ -7,5 +7,59 @@ body {
 }
 
 main {
+  max-width: 40rem;
   padding: 16px;
+}
+
+fieldset {
+  border: 1px solid #4a525a;
+  margin: 0 0 16px;
+}
+
+.choice {
+  display: block;
+  padding: 4px 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid #3a4148;
+}
+
+select,
+input[type='number'],
+button {
+  font: inherit;
+  padding: 4px 8px;
+  background: #2b3036;
+  color: inherit;
+  border: 1px solid #5a636c;
+  border-radius: 4px;
+}
+
+button:disabled {
+  opacity: 0.4;
+}
+
+input[aria-invalid='true'] {
+  border-color: #e0812b;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper output {
+  min-width: 2ch;
+  text-align: center;
 }
