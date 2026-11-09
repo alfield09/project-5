@@ -7,7 +7,7 @@ body {
 }
 
 main {
-  max-width: 40rem;
+  max-width: 72rem;
   padding: 16px;
 }
 
@@ -83,4 +83,215 @@ footer {
 .stepper output {
   min-width: 2ch;
   text-align: center;
+}
+
+/* Builder on the left and the live sheet on the right; stacked on a narrow screen. */
+.layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .sheet-pane {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+}
+
+.notice,
+.warnings {
+  padding: 8px 12px;
+  border-left: 3px solid #e0812b;
+  background: #2b2620;
+}
+
+.sheet {
+  padding: 8px 16px 16px;
+  border: 1px solid #4a525a;
+  border-radius: 6px;
+}
+
+.sheet-title {
+  font-weight: bold;
+}
+
+.abilities {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.abilities li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  border: 1px solid #4a525a;
+  border-radius: 4px;
+}
+
+.abilities strong {
+  font-size: 1.5rem;
+}
+
+.abilities .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 8px;
+}
+
+.stats div {
+  padding: 6px 8px;
+  border: 1px solid #3a4148;
+  border-radius: 4px;
+}
+
+.stats dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.stats dd {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.rows {
+  padding: 0;
+  list-style: none;
+}
+
+.rows li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid #2f353b;
+}
+
+.rows .name {
+  flex: 1;
+}
+
+.rows .marker {
+  width: 1.25rem;
+}
+
+.rows .tag {
+  width: 2.5rem;
+}
+
+.rows .bonus {
+  text-align: right;
+  font-weight: bold;
+}
+
+.rows .tag {
+  font-size: 0.75rem;
+  color: #aab1b8;
+}
+
+.marker {
+  color: #e0812b;
+}
+
+/* Rollable items: real buttons, large enough to tap. */
+.rolls {
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  border: 1px solid #4a525a;
+  border-radius: 6px;
+}
+
+.rolls .mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.latest-roll {
+  font-weight: bold;
+  min-height: 1.5em;
+}
+
+.history {
+  margin: 0 0 8px;
+  padding-left: 1.5rem;
+  max-height: 10rem;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+
+.roll-tile,
+.roll-row,
+.roll-inline {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.roll-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+}
+
+.abilities li {
+  padding: 0;
+}
+
+.roll-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 3px 4px;
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+
+.roll-inline {
+  min-height: 44px;
+  min-width: 44px;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.roll-tile:hover,
+.roll-row:hover,
+.roll-inline:hover {
+  background: #2b3036;
+}
+
+.rows li {
+  display: block;
+  padding: 0;
+}
+
+.save-status {
+  font-size: 0.85rem;
+  color: #aab1b8;
 }

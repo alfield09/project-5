@@ -67,6 +67,19 @@ describe('SRD 5.2.1 catalog', () => {
     expect(byId.fighter.spellcasting).toBeUndefined()
   })
 
+  test('starting equipment packages match the SRD class tables', () => {
+    const byId = Object.fromEntries(catalog.classes.map((entry) => [entry.id, entry]))
+    const summary = (id: string) =>
+      byId[id].startingEquipment.map((option) => [option.id, option.armorId ?? null, option.shield ?? false])
+
+    expect(summary('fighter')).toEqual([['A', 'chain-mail', false], ['B', 'studded-leather', false], ['C', null, false]])
+    expect(summary('paladin')).toEqual([['A', 'chain-mail', true], ['B', null, false]])
+    expect(summary('sorcerer')).toEqual([['A', null, false], ['B', null, false]])
+    expect(byId.fighter.startingEquipment[2].description).toBe('155 GP')
+    expect(byId.paladin.startingEquipment[1].description).toBe('150 GP')
+    expect(byId.sorcerer.startingEquipment[1].description).toBe('50 GP')
+  })
+
   test('level 1 spellcasting matches the SRD class tables', () => {
     const byId = Object.fromEntries(catalog.classes.map((entry) => [entry.id, entry]))
     expect(byId.paladin.spellcasting).toEqual({ ability: 'cha', level1: { cantrips: 0, preparedSpells: 2, slots: [2] } })

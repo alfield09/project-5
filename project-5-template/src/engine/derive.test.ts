@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { catalog } from '../catalog/load'
+import type { Catalog } from '../catalog/types'
 import type { Character } from './character'
 import { deriveCharacter, proficiencyBonus } from './derive'
 
@@ -22,8 +23,7 @@ const fighter: Character = {
   backgroundBonus: { plusTwo: 'str', plusOne: 'con' },
   classSkills: ['Perception', 'Survival'],
   speciesSkills: [],
-  armorId: 'chain-mail',
-  shield: false,
+  equipmentOptionId: 'A', // Chain Mail
 }
 
 const paladin: Character = {
@@ -36,8 +36,7 @@ const paladin: Character = {
   backgroundBonus: { plusTwo: 'cha', plusOne: 'wis' },
   classSkills: ['Athletics', 'Persuasion'],
   speciesSkills: [],
-  armorId: 'chain-mail',
-  shield: true,
+  equipmentOptionId: 'A', // Chain Mail and a Shield
 }
 
 const sorcerer: Character = {
@@ -50,7 +49,7 @@ const sorcerer: Character = {
   backgroundBonus: { plusTwo: 'dex', plusOne: 'con' },
   classSkills: ['Arcana', 'Persuasion'],
   speciesSkills: ['Perception'],
-  shield: false,
+  equipmentOptionId: 'A', // no armor
 }
 
 describe('Fighter (Dwarf, Soldier)', () => {
@@ -157,7 +156,7 @@ describe('incomplete or invalid choices give problems, never numbers', () => {
   }
 
   test('an empty character lists what to choose', () => {
-    const empty: Character = { edition: '2024', level: 1, baseScores: {}, classSkills: [], speciesSkills: [], shield: false }
+    const empty: Character = { edition: '2024', level: 1, baseScores: {}, classSkills: [], speciesSkills: [] }
     const problems = problemsFor(empty)
     expect(problems).toContain('choose a species')
     expect(problems).toContain('choose a background')
@@ -201,9 +200,65 @@ describe('incomplete or invalid choices give problems, never numbers', () => {
     expect(problemsFor({ ...fighter, level: 2 })).toContain('only level 1 is supported so far')
   })
 
-  test('unknown armor, and a shield passed as armor, are reported', () => {
-    expect(problemsFor({ ...fighter, armorId: 'mithral' })).toEqual(['unknown armor "mithral"'])
-    expect(problemsFor({ ...fighter, armorId: 'shield' })).toEqual(['unknown armor "shield"'])
+  test('starting equipment must be chosen, and must be one the class offers', () => {
+    expect(problemsFor({ ...fighter, equipmentOptionId: undefined })).toEqual(['choose starting equipment'])
+    expect(problemsFor({ ...fighter, equipmentOptionId: 'Z' })).toEqual(['unknown starting equipment "Z"'])
+    // The Sorcerer offers only A and B
+    expect(problemsFor({ ...sorcerer, equipmentOptionId: 'C' })).toEqual(['unknown starting equipment "C"'])
+  })
+})
+
+describe('worn armor comes from the starting equipment package', () => {
+  test('the Fighter options: Chain Mail, Studded Leather, or gold only', () => {
+    expect(derive({ ...fighter, equipmentOptionId: 'A' }).armorClass).toBe(16) // Chain Mail
+    expect(derive({ ...fighter, equipmentOptionId: 'B' }).armorClass).toBe(12 + 1) // Studded Leather + 1 Dex
+    expect(derive({ ...fighter, equipmentOptionId: 'C' }).armorClass).toBe(10 + 1) // 155 GP: no armor
+  })
+
+  test('the Paladin options: Chain Mail and a Shield, or gold only', () => {
+    expect(derive({ ...paladin, equipmentOptionId: 'A' }).armorClass).toBe(18)
+    expect(derive({ ...paladin, equipmentOptionId: 'B' }).armorClass).toBe(10) // 150 GP: no armor, DEX +0
+  })
+
+  test('the Sorcerer has no armor in either package', () => {
+    expect(derive({ ...sorcerer, equipmentOptionId: 'A' }).armorClass).toBe(12)
+    expect(derive({ ...sorcerer, equipmentOptionId: 'B' }).armorClass).toBe(12)
+  })
+})
+
+describe('proficiency markers and training for the sheet', () => {
+  test('Fighter', () => {
+    const result = derive(fighter)
+    expect(result.proficientSaves).toEqual(['str', 'con'])
+    expect(result.proficientSkills).toEqual(['Athletics', 'Intimidation', 'Perception', 'Survival'])
+    expect(result.training).toEqual({
+      armor: ['Light', 'Medium', 'Heavy', 'Shields'],
+      weapons: ['Simple', 'Martial'],
+      tool: 'Choose one kind of Gaming Set',
+    })
+    expect(result.darkvision).toBe(120)
+  })
+
+  test('Paladin', () => {
+    const result = derive(paladin)
+    expect(result.proficientSaves).toEqual(['wis', 'cha'])
+    expect(result.proficientSkills).toEqual(['Athletics', 'Insight', 'Persuasion', 'Religion'])
+    expect(result.training.tool).toBe("Calligrapher's Supplies")
+    expect(result.darkvision).toBeUndefined()
+  })
+
+  test('Sorcerer', () => {
+    const result = derive(sorcerer)
+    expect(result.proficientSaves).toEqual(['con', 'cha'])
+    expect(result.proficientSkills).toEqual(['Arcana', 'Perception', 'Persuasion', 'Sleight of Hand', 'Stealth'])
+    expect(result.training).toEqual({ armor: [], weapons: ['Simple'], tool: "Thieves' Tools" })
+  })
+})
+
+describe('a half-chosen background bonus', () => {
+  test('is reported as a problem, not calculated', () => {
+    const half = deriveCharacter({ ...fighter, backgroundBonus: { plusTwo: 'str' } }, catalog)
+    expect(half).toEqual({ ok: false, problems: ['choose how to apply the background bonus'] })
   })
 })
 
@@ -218,22 +273,46 @@ describe('rules beyond the three test characters', () => {
     expect(result.finalScores).toEqual({ str: 16, dex: 14, con: 15, int: 10, wis: 12, cha: 8 })
   })
 
+  // The real class packages only include a few armors, so these rules are checked with a catalog whose
+  // Sorcerer package is changed to include the armor under test.
+  function sorcererWearing(armorId?: string, shield = false): Catalog {
+    const option = { id: 'T', description: 'test package', armorId, shield }
+    return {
+      ...catalog,
+      classes: catalog.classes.map((entry) => (entry.id === 'sorcerer' ? { ...entry, startingEquipment: [option] } : entry)),
+    }
+  }
+
+  function deriveWith(character: Character, testCatalog: Catalog) {
+    const result = deriveCharacter({ ...character, equipmentOptionId: 'T' }, testCatalog)
+    if (!result.ok) throw new Error(result.problems.join('; '))
+    return result.derived
+  }
+
   test('a medium armor adds at most +2 from Dexterity, light armor adds all of it', () => {
     const nimble: Character = { ...sorcerer, baseScores: { ...sorcerer.baseScores, dex: 18 } } // final DEX 20, +5
-    expect(derive({ ...nimble, armorId: 'studded-leather' }).armorClass).toBe(12 + 5)
-    expect(derive({ ...nimble, armorId: 'half-plate' }).armorClass).toBe(15 + 2)
+    expect(deriveWith(nimble, sorcererWearing('studded-leather')).armorClass).toBe(12 + 5)
+    expect(deriveWith(nimble, sorcererWearing('half-plate')).armorClass).toBe(15 + 2)
+  })
+
+  test('heavy armor ignores Dexterity', () => {
+    expect(deriveWith(sorcerer, sorcererWearing('ring-mail')).armorClass).toBe(14)
   })
 
   test('armor the class is not trained in still gives AC but warns', () => {
-    const result = derive({ ...sorcerer, armorId: 'chain-mail' })
+    const result = deriveWith(sorcerer, sorcererWearing('chain-mail'))
     expect(result.armorClass).toBe(16)
     expect(result.warnings.join(' ')).toContain('no training with heavy armor')
   })
 
   test('a shield adds nothing without training, and warns', () => {
-    const result = derive({ ...sorcerer, shield: true })
+    const result = deriveWith(sorcerer, sorcererWearing(undefined, true))
     expect(result.armorClass).toBe(12)
     expect(result.warnings.join(' ')).toContain('no training with shields')
+  })
+
+  test('a shield adds 2 for a class trained with shields', () => {
+    expect(derive(paladin).armorClass).toBe(16 + 2)
   })
 
   test('armor with a Strength requirement slows a weaker wearer by 10 feet', () => {

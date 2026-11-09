@@ -18,7 +18,8 @@ import {
   type PartialScores,
   type ScoreMethod,
 } from '../engine/abilityScores'
-import { ABILITY_NAMES } from './labels'
+import type { RandomSource } from '../engine/dice'
+import { ABILITY_NAMES, formatModifier } from './labels'
 
 const METHOD_LABELS: Record<ScoreMethod, string> = {
   standardArray: 'Standard array',
@@ -29,9 +30,6 @@ const METHOD_LABELS: Record<ScoreMethod, string> = {
 
 const METHODS: ScoreMethod[] = ['standardArray', 'pointBuy', 'roll', 'manual']
 
-function formatModifier(modifier: number): string {
-  return modifier >= 0 ? `+${modifier}` : `${modifier}`
-}
 
 // Point buy starts with every ability at the minimum score.
 function allAtMinimum(): PartialScores {
@@ -40,11 +38,26 @@ function allAtMinimum(): PartialScores {
   return scores
 }
 
-export default function AbilityScoreStep() {
-  const [method, setMethod] = useState<ScoreMethod>('standardArray')
-  const [scores, setScores] = useState<PartialScores>({})
-  const [rolled, setRolled] = useState<number[]>([]) // the six rolled values, before assignment
+/** The parts of the character record this step edits. They always change together, in one patch. */
+export interface ScorePatch {
+  scoreMethod?: ScoreMethod
+  rolledScores?: number[]
+  baseScores?: PartialScores
+}
+
+interface Props {
+  method: ScoreMethod
+  rolled: number[] // the six rolled values, before assignment
+  scores: PartialScores
+  onChange: (patch: ScorePatch) => void
+  random?: RandomSource // replaceable so tests can fix the dice
+}
+
+// The method, rolled values and scores live in the character record (owned by the app), so they are saved and
+// restored with it. Only the text typed into the manual boxes is kept here, so half-typed numbers can be shown.
+export default function AbilityScoreStep({ method, rolled, scores, onChange, random = Math.random }: Props) {
   const [manualText, setManualText] = useState<Partial<Record<Ability, string>>>({})
+  const setScores = (baseScores: PartialScores) => onChange({ baseScores })
 
   const pointBuy = checkPointBuy(scores)
   const assignedCount = ABILITIES.filter((ability) => scores[ability] !== undefined).length
@@ -55,24 +68,16 @@ export default function AbilityScoreStep() {
   function chooseMethod(next: ScoreMethod) {
     if (next === method) return
 
+    setManualText({})
+
     if (next === 'manual') {
       // Manual entry accepts any valid number, so the current scores carry over.
-      const text: Partial<Record<Ability, string>> = {}
-      for (const ability of ABILITIES) {
-        const score = scores[ability]
-        if (score !== undefined) text[ability] = String(score)
-      }
-      setManualText(text)
-      setRolled([])
-      setMethod(next)
+      onChange({ scoreMethod: next, rolledScores: [] })
       return
     }
 
     if (hasWork && !window.confirm('Switching methods clears your scores. Continue?')) return
-    setScores(next === 'pointBuy' ? allAtMinimum() : {})
-    setRolled([])
-    setManualText({})
-    setMethod(next)
+    onChange({ scoreMethod: next, rolledScores: [], baseScores: next === 'pointBuy' ? allAtMinimum() : {} })
   }
 
   function setScore(ability: Ability, score: number | undefined) {
@@ -90,8 +95,8 @@ export default function AbilityScoreStep() {
   }
 
   function rollScores() {
-    setRolled(rollAbilityScores(Math.random).sort((a, b) => b - a))
-    setScores({}) // a new roll gives new values to assign
+    // A new roll gives new values to assign, so the old assignments are cleared with it.
+    onChange({ rolledScores: rollAbilityScores(random).sort((a, b) => b - a), baseScores: {} })
   }
 
   function changeManual(ability: Ability, text: string) {
@@ -154,7 +159,7 @@ export default function AbilityScoreStep() {
         <tbody>
           {ABILITIES.map((ability) => {
             const score = scores[ability]
-            const text = manualText[ability] ?? ''
+            const text = manualText[ability] ?? (score === undefined ? '' : String(score)) // typed text, else the saved score
             const manualInvalid =
               method === 'manual' && text.trim() !== '' && !checkManualScore(Number(text)).valid
             const inputId = `score-${ability}`

@@ -117,14 +117,33 @@ function spellcastingErrors(value: unknown): string[] {
   return errors.filter((error): error is string => error !== undefined)
 }
 
-function classErrors(raw: Raw): string[] {
+function equipmentErrors(value: unknown, armor: Armor[]): string[] {
+  if (!Array.isArray(value) || value.length === 0) return ['startingEquipment must be a list of options']
+  const errors: string[] = []
+  const seen = new Set<string>()
+  for (const option of value) {
+    if (!isRecord(option) || text(option.id, 'id') || text(option.description, 'description')) {
+      errors.push('each starting equipment option needs an id and a description')
+      continue
+    }
+    if (seen.has(option.id as string)) errors.push(`starting equipment option ${option.id} appears twice`)
+    seen.add(option.id as string)
+    if (option.armorId !== undefined) {
+      const found = armor.find((entry) => entry.id === option.armorId)
+      if (found === undefined || found.category === 'shield') errors.push(`starting equipment option ${option.id}: unknown armor "${String(option.armorId)}"`)
+    }
+    if (option.shield !== undefined && typeof option.shield !== 'boolean') errors.push(`starting equipment option ${option.id}: shield must be true or false`)
+  }
+  return errors
+}
+
+function classErrors(raw: Raw, armor: Armor[]): string[] {
   const errors = [
     text(raw.primaryAbility, 'primaryAbility'),
     positiveNumber(raw.hitDie, 'hitDie'),
     abilityList(raw.savingThrows, 'savingThrows', 2),
     textList(raw.weaponProficiencies, 'weaponProficiencies'),
     textList(raw.armorTraining, 'armorTraining', 0),
-    text(raw.startingEquipment, 'startingEquipment'),
     positiveNumber(raw.subclassLevel, 'subclassLevel'),
   ]
 
@@ -135,6 +154,7 @@ function classErrors(raw: Raw): string[] {
   }
 
   const result = errors.filter((error): error is string => error !== undefined)
+  result.push(...equipmentErrors(raw.startingEquipment, armor))
   if (raw.spellcasting !== undefined) result.push(...spellcastingErrors(raw.spellcasting))
   return result
 }
@@ -204,12 +224,14 @@ export function validateCatalog(raw: {
   const messages: string[] = []
   const sources = loadSources(raw.sources, messages)
 
+  const armor = loadEntries<Armor>('armor', raw.armor, sources, armorErrors, messages)
+
   const catalog: Catalog = {
     sources,
     species: loadEntries<Species>('species', raw.species, sources, speciesErrors, messages),
     backgrounds: loadEntries<Background>('background', raw.backgrounds, sources, backgroundErrors, messages),
-    classes: loadEntries<ClassEntry>('class', raw.classes, sources, classErrors, messages),
-    armor: loadEntries<Armor>('armor', raw.armor, sources, armorErrors, messages),
+    classes: loadEntries<ClassEntry>('class', raw.classes, sources, (entry) => classErrors(entry, armor), messages),
+    armor,
   }
   return { catalog, messages }
 }

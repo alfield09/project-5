@@ -9,3 +9,8 @@ export const ABILITY_NAMES: Record<Ability, string> = {
   wis: 'Wisdom',
   cha: 'Charisma',
 }
+
+/** A modifier with its sign, for example +3, +0 or -1. */
+export function formatModifier(modifier: number): string {
+  return modifier >= 0 ? `+${modifier}` : `${modifier}`
+}

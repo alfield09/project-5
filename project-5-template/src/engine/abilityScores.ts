@@ -1,6 +1,7 @@
 // Ability score logic: modifiers and the four ways to generate scores.
 // Pure functions only, with no UI code (see spec.md, Structure rules).
 // Numbers come from SRD 5.2.1 ("Generate Your Scores" and "Ability Scores and Modifiers").
+import { rollDie, type RandomSource } from './dice'
 
 export const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const
 export type Ability = (typeof ABILITIES)[number]
@@ -116,16 +117,10 @@ export function checkPointBuy(scores: PartialScores): PointBuyResult {
 
 // ---- Roll (4d6, drop the lowest) ----
 
-/** Returns a number from 0 up to but not including 1, like Math.random. Tests pass a fixed one. */
-export type RandomSource = () => number
-
-function rollD6(random: RandomSource): number {
-  return Math.floor(random() * 6) + 1
-}
 
 /** Roll four d6 and total the highest three. */
 export function rollAbilityScore(random: RandomSource): number {
-  const dice = [rollD6(random), rollD6(random), rollD6(random), rollD6(random)]
+  const dice = [rollDie(6, random), rollDie(6, random), rollDie(6, random), rollDie(6, random)]
   dice.sort((a, b) => a - b)
   return dice[1] + dice[2] + dice[3] // dice[0] is the lowest and is dropped
 }

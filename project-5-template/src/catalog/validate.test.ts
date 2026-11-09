@@ -43,7 +43,7 @@ const goodClass = {
   skillChoices: { count: 2, options: ['Athletics', 'History'] },
   weaponProficiencies: ['Simple'],
   armorTraining: [],
-  startingEquipment: 'Stuff',
+  startingEquipment: [{ id: 'A', description: 'Stuff' }],
   subclassLevel: 3,
 }
 
@@ -187,5 +187,44 @@ describe('validateCatalog', () => {
   test('rejects a species optional effect that is not a positive number', () => {
     expect(load({ species: [{ ...goodSpecies, hitPointBonusPerLevel: 'lots' }] }).catalog.species).toHaveLength(0)
     expect(load({ species: [{ ...goodSpecies, freeSkillChoices: 0 }] }).catalog.species).toHaveLength(0)
+  })
+
+  describe('starting equipment options', () => {
+    const withOptions = (startingEquipment: unknown) => load({ classes: [{ ...goodClass, startingEquipment }] })
+
+    test('accepts a package that names real armor and a shield', () => {
+      const { catalog, messages } = withOptions([
+        { id: 'A', description: 'Armor and shield', armorId: 'goodarmor', shield: true },
+        { id: 'B', description: '50 GP' },
+      ])
+      expect(messages).toEqual([])
+      expect(catalog.classes).toHaveLength(1)
+    })
+
+    test('rejects a package that names armor not in the catalog, and says which', () => {
+      const { catalog, messages } = withOptions([{ id: 'A', description: 'Mystery armor', armorId: 'mithral' }])
+      expect(catalog.classes).toHaveLength(0)
+      expect(messages[0]).toContain('mithral')
+    })
+
+    test('rejects a shield named as the worn armor', () => {
+      const shield = { ...goodArmor, id: 'goodshield', category: 'shield', armorClass: 2 }
+      const { catalog } = load({
+        armor: [goodArmor, shield],
+        classes: [{ ...goodClass, startingEquipment: [{ id: 'A', description: 'x', armorId: 'goodshield' }] }],
+      })
+      expect(catalog.classes).toHaveLength(0)
+    })
+
+    test('rejects an empty list, a repeated id, or an option with no description', () => {
+      expect(withOptions([]).catalog.classes).toHaveLength(0)
+      expect(withOptions([{ id: 'A', description: 'x' }, { id: 'A', description: 'y' }]).catalog.classes).toHaveLength(0)
+      expect(withOptions([{ id: 'A', description: '' }]).catalog.classes).toHaveLength(0)
+      expect(withOptions('A or B').catalog.classes).toHaveLength(0)
+    })
+
+    test('rejects a shield flag that is not true or false', () => {
+      expect(withOptions([{ id: 'A', description: 'x', shield: 'yes' }]).catalog.classes).toHaveLength(0)
+    })
   })
 })

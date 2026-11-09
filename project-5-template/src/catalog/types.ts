@@ -58,6 +58,14 @@ export interface Spellcasting {
   level1: { cantrips: number; preparedSpells: number; slots: number[] } // slots[0] is level 1 slots
 }
 
+/** One starting equipment package a class offers at level 1 (SRD: "Choose Starting Equipment"). */
+export interface EquipmentOption {
+  id: string // 'A', 'B' or 'C', as in the SRD
+  description: string // the package as the SRD words it
+  armorId?: string // worn armor from the catalog, if the package includes armor
+  shield?: boolean // true if the package includes a Shield
+}
+
 export interface ClassEntry extends EntryBase {
   primaryAbility: string // display text, for example "Strength or Dexterity"
   hitDie: number
@@ -65,7 +73,7 @@ export interface ClassEntry extends EntryBase {
   skillChoices: { count: number; options: string[] }
   weaponProficiencies: string[]
   armorTraining: string[]
-  startingEquipment: string
+  startingEquipment: EquipmentOption[]
   subclassLevel: number
   spellcasting?: Spellcasting
 }

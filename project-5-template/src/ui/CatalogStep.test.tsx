@@ -5,7 +5,7 @@ import CatalogStep from './CatalogStep'
 
 // Render checks only: clicking behavior is tested by hand in the browser (see plan.md).
 test('first render lists every species, background and class', () => {
-  const html = renderToString(<CatalogStep />)
+  const html = renderToString(<CatalogStep onChange={() => {}} />)
 
   for (const name of ['Dragonborn', 'Dwarf', 'Elf', 'Gnome', 'Goliath', 'Halfling', 'Human', 'Orc', 'Tiefling']) {
     expect(html).toContain(name)

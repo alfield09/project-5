@@ -1,10 +1,13 @@
 // The character record: the choices a player has made, and nothing that can be calculated from them.
 // This is the single source of truth for a character (spec.md, Data and state).
 import type { Edition } from '../catalog/types'
-import type { Ability, PartialScores } from './abilityScores'
+import type { Ability, PartialScores, ScoreMethod } from './abilityScores'
 
-/** How the background's ability bonus is spent: +2 and +1 on two of its abilities, or +1 on all three. */
-export type BackgroundBonus = { plusTwo: Ability; plusOne: Ability } | { plusOneAll: true }
+/**
+ * How the background's ability bonus is spent: +2 and +1 on two of its abilities, or +1 on all three.
+ * The two-ability form can be half filled in while the player is still choosing.
+ */
+export type BackgroundBonus = { plusTwo?: Ability; plusOne?: Ability } | { plusOneAll: true }
 
 export interface Character {
   edition: Edition
@@ -12,12 +15,13 @@ export interface Character {
   speciesId?: string
   backgroundId?: string
   classId?: string
+  scoreMethod?: ScoreMethod // how the scores are being chosen; standard array when left out
+  rolledScores?: number[] // the six rolled values, kept so a reload never re-rolls them
   baseScores: PartialScores // scores before the background bonus
   backgroundBonus?: BackgroundBonus
   classSkills: string[] // the skills picked from the class's list
   speciesSkills: string[] // skills of the player's choice from the species, for example the Human's Skillful
-  armorId?: string // worn armor, from the catalog; leave out for no armor
-  shield: boolean
+  equipmentOptionId?: string // the class's starting equipment package ('A', 'B' ...); it decides worn armor and shield
 }
 
 /** Numbers calculated from a character. Never saved; always recomputed. */
@@ -32,6 +36,10 @@ export interface Derived {
   armorClass: number
   maxHitPoints: number
   speed: number
+  darkvision?: number // feet
+  proficientSaves: Ability[]
+  proficientSkills: string[] // in the order of the skill list
+  training: { armor: string[]; weapons: string[]; tool: string }
   spellcasting?: { ability: Ability; saveDc: number; attackBonus: number }
   warnings: string[] // legal but costly choices, such as armor the class is not trained in
 }

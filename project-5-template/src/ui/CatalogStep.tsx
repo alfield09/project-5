@@ -1,13 +1,16 @@
 // Builder step: choose a species, background and class from the catalog and see what each one contains.
 // Display and input only; the data comes from the validated catalog (src/catalog).
-import { useState } from 'react'
 import { catalog, catalogMessages } from '../catalog/load'
 import { ABILITY_NAMES } from './labels'
 
-export default function CatalogStep() {
-  const [speciesId, setSpeciesId] = useState('')
-  const [backgroundId, setBackgroundId] = useState('')
-  const [classId, setClassId] = useState('')
+interface Props {
+  speciesId?: string
+  backgroundId?: string
+  classId?: string
+  onChange: (patch: { speciesId?: string; backgroundId?: string; classId?: string }) => void
+}
+
+export default function CatalogStep({ speciesId = '', backgroundId = '', classId = '', onChange }: Props) {
 
   const species = catalog.species.find((entry) => entry.id === speciesId)
   const background = catalog.backgrounds.find((entry) => entry.id === backgroundId)
@@ -30,7 +33,7 @@ export default function CatalogStep() {
 
       <p>
         <label htmlFor="species-select">Species </label>
-        <select id="species-select" value={speciesId} onChange={(event) => setSpeciesId(event.target.value)}>
+        <select id="species-select" value={speciesId} onChange={(event) => onChange({ speciesId: event.target.value || undefined })}>
           <option value="">Choose</option>
           {catalog.species.map((entry) => (
             <option key={entry.id} value={entry.id}>
@@ -58,7 +61,7 @@ export default function CatalogStep() {
 
       <p>
         <label htmlFor="background-select">Background </label>
-        <select id="background-select" value={backgroundId} onChange={(event) => setBackgroundId(event.target.value)}>
+        <select id="background-select" value={backgroundId} onChange={(event) => onChange({ backgroundId: event.target.value || undefined })}>
           <option value="">Choose</option>
           {catalog.backgrounds.map((entry) => (
             <option key={entry.id} value={entry.id}>
@@ -81,7 +84,7 @@ export default function CatalogStep() {
 
       <p>
         <label htmlFor="class-select">Class </label>
-        <select id="class-select" value={classId} onChange={(event) => setClassId(event.target.value)}>
+        <select id="class-select" value={classId} onChange={(event) => onChange({ classId: event.target.value || undefined })}>
           <option value="">Choose</option>
           {catalog.classes.map((entry) => (
             <option key={entry.id} value={entry.id}>
@@ -101,7 +104,16 @@ export default function CatalogStep() {
             </li>
             <li>Weapons: {classEntry.weaponProficiencies.join(', ')}</li>
             <li>Armor training: {classEntry.armorTraining.length > 0 ? classEntry.armorTraining.join(', ') : 'None'}</li>
-            <li>Starting equipment: {classEntry.startingEquipment}</li>
+            <li>
+              Starting equipment:
+              <ul>
+                {classEntry.startingEquipment.map((option) => (
+                  <li key={option.id}>
+                    {option.id}: {option.description}
+                  </li>
+                ))}
+              </ul>
+            </li>
             <li>Subclass chosen at level {classEntry.subclassLevel}</li>
             {classEntry.spellcasting ? (
               <li>
