@@ -36,7 +36,7 @@ Approved for the MVP:
    - Fails safely: with a choice missing, the sheet shows an incomplete state, never numbers computed from nothing.
    - Spells: during building, a Paladin or Sorcerer picks spells from the SRD 5.2.1 spell list. The Spells tab then shows the casting ability, save DC, attack bonus, slots, and the chosen spells with level, casting time, range, duration and full text, with level filter buttons. No search bar.
    - Spells work when: cantrips and level 1 spells appear in one combined picker list, each kind is limited to its own count, the picker refuses more spells than the class allows at that level, offers only spells on the class's list, and the choices survive a reload. Spells can be changed later through the builder (see "Edit later").
-   - Level 1 spell numbers from SRD 5.2.1: Paladin has no cantrips, prepares 2 level 1 spells, and has 2 level 1 slots; Sorcerer knows 4 cantrips, prepares 2 level 1 spells, and has 2 level 1 slots. Fighter has no spellcasting. Paladin's casting ability is Charisma; the Sorcerer's is Charisma too (its primary ability).
+   - Level 1 spell numbers from SRD 5.2.1: Paladin has no cantrips, prepares 2 level 1 spells, and has 2 level 1 slots; Sorcerer knows 4 cantrips, prepares 2 level 1 spells, and has 2 level 1 slots. Fighter has no spellcasting. Casting ability is Charisma for both (confirmed in the SRD class text).
 2. **Choose ability scores.** The player picks one method first (standard array, point buy, roll or manual entry), then assigns scores to the six abilities.
    - Standard array: 15, 14, 13, 12, 10, 8, each used once.
    - Point buy: 27 points, scores from 8 to 15, with these costs from the SRD 5.2.1 "Ability Score Point Costs" table: 8 = 0, 9 = 1, 10 = 2, 11 = 3, 12 = 4, 13 = 5, 14 = 7, 15 = 9.
@@ -94,7 +94,7 @@ What information the system keeps, where each piece lives, and how it moves and 
 
 - **Character record** (single source of truth, saved in the browser): edition, name, level, species, class, background, the chosen score method, any rolled scores, base ability scores, the user's choices (such as skill picks), current HP and temp HP.
 - **Derived numbers** (modifiers, bonuses, AC, max HP, and so on): computed by the engine each time, never stored, so they cannot go out of date.
-- **Catalog** (read-only, loaded from JSON files): every entry has an id, name, edition, source and license, plus attribution text where the license requires it.
+- **Catalog** (read-only, loaded from JSON files in `src/catalog/data/`): every entry has an id, name, edition and a source. The source is a record, stored once in `sources.json`, with its name, license, URL and attribution text; an entry whose source is missing or has no license fails validation. The entry shapes are in `src/catalog/types.ts`. So far: armor (the SRD Armor table and the shield: category, base AC, how much Dexterity applies, Strength requirement), species (sizes, speed, darkvision, traits as name and text, plus the two effects that change numbers: the Dwarf's HP per level and the Human's free skill), backgrounds (three ability options, feat, two skills, tool, equipment), and classes (hit die, saves, skill choices, proficiencies, equipment, subclass level, and level 1 spellcasting numbers). Not yet modeled: species choices that change numbers (for example the Wood Elf's 35-foot speed), class features, subclasses, spells, and numbers beyond level 1.
 - **Roll history:** session state only for now (see Provisional).
 
 ### Interaction loop

@@ -50,7 +50,6 @@ I chose this over a virtual tabletop because there are already many good VTTs. M
 ### Users
 
 D&D players and Dungeon Masters, new and experienced, who want to make and keep characters for free, on a laptop or phone. They need correct automatic math, quick dice rolls at the table, several characters kept in one place, and a printable sheet.
-
 ### Experience goals
 
 - **Notice:** a large catalog of species and subclasses with nothing locked, and a clear label showing where each option comes from.

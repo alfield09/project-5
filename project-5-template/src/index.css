@@ -53,6 +53,27 @@ input[aria-invalid='true'] {
   border-color: #e0812b;
 }
 
+.details {
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  border-left: 3px solid #5a636c;
+}
+
+dt {
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+dd {
+  margin: 2px 0 0;
+}
+
+footer {
+  margin-top: 32px;
+  font-size: 0.85rem;
+  color: #aab1b8;
+}
+
 .stepper {
   display: inline-flex;
   align-items: center;

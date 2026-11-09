@@ -1,0 +1,61 @@
+[
+  {
+    "id": "fighter",
+    "name": "Fighter",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Strength or Dexterity",
+    "hitDie": 10,
+    "savingThrows": ["str", "con"],
+    "skillChoices": {
+      "count": 2,
+      "options": ["Acrobatics", "Animal Handling", "Athletics", "History", "Insight", "Intimidation", "Persuasion", "Perception", "Survival"]
+    },
+    "weaponProficiencies": ["Simple", "Martial"],
+    "armorTraining": ["Light", "Medium", "Heavy", "Shields"],
+    "startingEquipment": "Choose A, B, or C: (A) Chain Mail, Greatsword, Flail, 8 Javelins, Dungeoneer's Pack, and 4 GP; (B) Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Dungeoneer's Pack, and 11 GP; or (C) 155 GP",
+    "subclassLevel": 3
+  },
+  {
+    "id": "paladin",
+    "name": "Paladin",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Strength and Charisma",
+    "hitDie": 10,
+    "savingThrows": ["wis", "cha"],
+    "skillChoices": {
+      "count": 2,
+      "options": ["Athletics", "Insight", "Intimidation", "Medicine", "Persuasion", "Religion"]
+    },
+    "weaponProficiencies": ["Simple", "Martial"],
+    "armorTraining": ["Light", "Medium", "Heavy", "Shields"],
+    "startingEquipment": "Choose A or B: (A) Chain Mail, Shield, Longsword, 6 Javelins, Holy Symbol, Priest's Pack, and 9 GP; or (B) 150 GP",
+    "subclassLevel": 3,
+    "spellcasting": {
+      "ability": "cha",
+      "level1": { "cantrips": 0, "preparedSpells": 2, "slots": [2] }
+    }
+  },
+  {
+    "id": "sorcerer",
+    "name": "Sorcerer",
+    "edition": "2024",
+    "source": "srd-5.2.1",
+    "primaryAbility": "Charisma",
+    "hitDie": 6,
+    "savingThrows": ["con", "cha"],
+    "skillChoices": {
+      "count": 2,
+      "options": ["Arcana", "Deception", "Insight", "Intimidation", "Persuasion", "Religion"]
+    },
+    "weaponProficiencies": ["Simple"],
+    "armorTraining": [],
+    "startingEquipment": "Choose A or B: (A) Spear, 2 Daggers, Arcane Focus (crystal), Dungeoneer's Pack, and 28 GP; or (B) 50 GP",
+    "subclassLevel": 3,
+    "spellcasting": {
+      "ability": "cha",
+      "level1": { "cantrips": 4, "preparedSpells": 2, "slots": [2] }
+    }
+  }
+]

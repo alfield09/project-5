@@ -18,15 +18,7 @@ import {
   type PartialScores,
   type ScoreMethod,
 } from '../engine/abilityScores'
-
-const ABILITY_NAMES: Record<Ability, string> = {
-  str: 'Strength',
-  dex: 'Dexterity',
-  con: 'Constitution',
-  int: 'Intelligence',
-  wis: 'Wisdom',
-  cha: 'Charisma',
-}
+import { ABILITY_NAMES } from './labels'
 
 const METHOD_LABELS: Record<ScoreMethod, string> = {
   standardArray: 'Standard array',

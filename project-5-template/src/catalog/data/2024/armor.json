@@ -1,0 +1,15 @@
+[
+  { "id": "padded", "name": "Padded Armor", "edition": "2024", "source": "srd-5.2.1", "category": "light", "armorClass": 11, "dex": "full" },
+  { "id": "leather", "name": "Leather Armor", "edition": "2024", "source": "srd-5.2.1", "category": "light", "armorClass": 11, "dex": "full" },
+  { "id": "studded-leather", "name": "Studded Leather Armor", "edition": "2024", "source": "srd-5.2.1", "category": "light", "armorClass": 12, "dex": "full" },
+  { "id": "hide", "name": "Hide Armor", "edition": "2024", "source": "srd-5.2.1", "category": "medium", "armorClass": 12, "dex": "max2" },
+  { "id": "chain-shirt", "name": "Chain Shirt", "edition": "2024", "source": "srd-5.2.1", "category": "medium", "armorClass": 13, "dex": "max2" },
+  { "id": "scale-mail", "name": "Scale Mail", "edition": "2024", "source": "srd-5.2.1", "category": "medium", "armorClass": 14, "dex": "max2" },
+  { "id": "breastplate", "name": "Breastplate", "edition": "2024", "source": "srd-5.2.1", "category": "medium", "armorClass": 14, "dex": "max2" },
+  { "id": "half-plate", "name": "Half Plate Armor", "edition": "2024", "source": "srd-5.2.1", "category": "medium", "armorClass": 15, "dex": "max2" },
+  { "id": "ring-mail", "name": "Ring Mail", "edition": "2024", "source": "srd-5.2.1", "category": "heavy", "armorClass": 14, "dex": "none" },
+  { "id": "chain-mail", "name": "Chain Mail", "edition": "2024", "source": "srd-5.2.1", "category": "heavy", "armorClass": 16, "dex": "none", "strength": 13 },
+  { "id": "splint", "name": "Splint Armor", "edition": "2024", "source": "srd-5.2.1", "category": "heavy", "armorClass": 17, "dex": "none", "strength": 15 },
+  { "id": "plate", "name": "Plate Armor", "edition": "2024", "source": "srd-5.2.1", "category": "heavy", "armorClass": 18, "dex": "none", "strength": 15 },
+  { "id": "shield", "name": "Shield", "edition": "2024", "source": "srd-5.2.1", "category": "shield", "armorClass": 2, "dex": "none" }
+]
