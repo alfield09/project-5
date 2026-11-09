@@ -21,6 +21,7 @@ export interface Character {
   backgroundBonus?: BackgroundBonus
   classSkills: string[] // the skills picked from the class's list
   speciesSkills: string[] // skills of the player's choice from the species, for example the Human's Skillful
+  spellIds?: string[] // chosen cantrips and level 1 spells, from the catalog; one list for both kinds
   equipmentOptionId?: string // the class's starting equipment package ('A', 'B' ...); it decides worn armor and shield
 }
 
@@ -40,7 +41,7 @@ export interface Derived {
   proficientSaves: Ability[]
   proficientSkills: string[] // in the order of the skill list
   training: { armor: string[]; weapons: string[]; tool: string }
-  spellcasting?: { ability: Ability; saveDc: number; attackBonus: number }
+  spellcasting?: { ability: Ability; saveDc: number; attackBonus: number; slots: number[] } // slots[0] is level 1
   warnings: string[] // legal but costly choices, such as armor the class is not trained in
 }
 

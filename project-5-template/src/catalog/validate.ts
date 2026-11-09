@@ -2,7 +2,7 @@
 // A bad entry is skipped with a message that names it; the rest still load (spec.md, item 6).
 import { ABILITIES } from '../engine/abilityScores'
 import { SKILL_NAMES } from '../engine/skills'
-import type { Armor, Background, Catalog, ClassEntry, SourceRecord, Species } from './types'
+import type { Armor, Background, Catalog, ClassEntry, SourceRecord, Species, Spell } from './types'
 
 type Raw = Record<string, unknown>
 
@@ -87,6 +87,20 @@ function armorErrors(raw: Raw): string[] {
   }
   if (!['full', 'max2', 'none'].includes(raw.dex as string)) errors.push('dex must be full, max2 or none')
   if (raw.strength !== undefined) errors.push(positiveNumber(raw.strength, 'strength'))
+  return errors.filter((error): error is string => error !== undefined)
+}
+
+function spellErrors(raw: Raw): string[] {
+  const errors = [
+    text(raw.school, 'school'),
+    textList(raw.classes, 'classes'),
+    text(raw.castingTime, 'castingTime'),
+    text(raw.range, 'range'),
+    text(raw.components, 'components'),
+    text(raw.duration, 'duration'),
+    text(raw.description, 'description'),
+  ]
+  if (!Number.isInteger(raw.level) || (raw.level as number) < 0 || (raw.level as number) > 9) errors.push('level must be a whole number from 0 to 9')
   return errors.filter((error): error is string => error !== undefined)
 }
 
@@ -220,6 +234,7 @@ export function validateCatalog(raw: {
   backgrounds: unknown
   classes: unknown
   armor: unknown
+  spells: unknown
 }): LoadResult {
   const messages: string[] = []
   const sources = loadSources(raw.sources, messages)
@@ -232,6 +247,7 @@ export function validateCatalog(raw: {
     backgrounds: loadEntries<Background>('background', raw.backgrounds, sources, backgroundErrors, messages),
     classes: loadEntries<ClassEntry>('class', raw.classes, sources, (entry) => classErrors(entry, armor), messages),
     armor,
+    spells: loadEntries<Spell>('spell', raw.spells, sources, spellErrors, messages),
   }
   return { catalog, messages }
 }

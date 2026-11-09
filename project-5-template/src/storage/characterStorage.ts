@@ -100,6 +100,7 @@ export function validateCharacter(raw: unknown): { ok: true; character: Characte
   }
   if (!isTextList(raw.classSkills)) problems.push('classSkills')
   if (!isTextList(raw.speciesSkills)) problems.push('speciesSkills')
+  if (raw.spellIds !== undefined && !isTextList(raw.spellIds)) problems.push('spellIds')
 
   const baseScores: Character['baseScores'] = {}
   if (!isRecord(raw.baseScores)) {
@@ -137,5 +138,6 @@ export function validateCharacter(raw: unknown): { ok: true; character: Characte
   if (raw.backgroundBonus !== undefined) character.backgroundBonus = raw.backgroundBonus as BackgroundBonus
   if (raw.scoreMethod !== undefined) character.scoreMethod = raw.scoreMethod as ScoreMethod
   if (rolled !== undefined) character.rolledScores = rolled as number[]
+  if (raw.spellIds !== undefined) character.spellIds = raw.spellIds as string[]
   return { ok: true, character }
 }

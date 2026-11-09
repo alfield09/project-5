@@ -33,6 +33,36 @@ describe('SRD 5.2.1 catalog', () => {
     expect(catalog.species.filter((entry) => entry.freeSkillChoices !== undefined)).toHaveLength(1)
   })
 
+  test('has all 339 SRD 5.2.1 spells, by level', () => {
+    expect(catalog.spells).toHaveLength(339)
+    const byLevel: Record<number, number> = {}
+    for (const spell of catalog.spells) byLevel[spell.level] = (byLevel[spell.level] ?? 0) + 1
+    expect(byLevel).toEqual({ 0: 27, 1: 57, 2: 57, 3: 42, 4: 34, 5: 38, 6: 31, 7: 20, 8: 17, 9: 16 })
+  })
+
+  test('spells carry the details the SRD prints', () => {
+    const byId = Object.fromEntries(catalog.spells.map((entry) => [entry.id, entry]))
+    expect(byId['fire-bolt']).toMatchObject({ level: 0, school: 'Evocation', classes: ['sorcerer', 'wizard'], castingTime: 'Action', range: '120 feet', components: 'V, S', duration: 'Instantaneous' })
+    expect(byId.fireball).toMatchObject({ level: 3, school: 'Evocation', range: '150 feet', components: 'V, S, M (a ball of bat guano and sulfur)' })
+    expect(byId.heroism).toMatchObject({ level: 1, classes: ['bard', 'paladin'], duration: 'Concentration, up to 1 minute' })
+    expect(byId['detect-magic'].castingTime).toBe('Action or Ritual')
+    expect(byId['divine-smite'].classes).toEqual(['paladin'])
+  })
+
+  test('spell text was cleaned: paragraphs joined across page breaks, symbols repaired, no page headers', () => {
+    const everything = catalog.spells.map((spell) => spell.description + spell.range + spell.components).join('\n')
+    expect(everything).not.toContain('System Reference Document')
+    expect(everything).not.toContain('\uFFFD')
+    expect(catalog.spells.find((spell) => spell.id === 'false-life')?.description).toContain('5 additional Temporary Hit Points')
+    expect(catalog.spells.find((spell) => spell.id === 'control-weather')?.description).toContain('1d4 \u00D7 10 minutes')
+    expect(catalog.spells.find((spell) => spell.id === 'shield')?.description).toContain('+5 bonus to AC')
+  })
+
+  test('every spell id is unique and every spell points to the SRD source', () => {
+    expect(new Set(catalog.spells.map((spell) => spell.id)).size).toBe(catalog.spells.length)
+    expect(catalog.spells.every((spell) => spell.source === 'srd-5.2.1' && spell.edition === '2024')).toBe(true)
+  })
+
   test('every entry points to the SRD 5.2.1 source, which has a license and attribution', () => {
     const entries = [...catalog.species, ...catalog.backgrounds, ...catalog.classes, ...catalog.armor]
     expect(entries.every((entry) => entry.source === 'srd-5.2.1' && entry.edition === '2024')).toBe(true)

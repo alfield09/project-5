@@ -47,6 +47,21 @@ const goodClass = {
   subclassLevel: 3,
 }
 
+const goodSpell = {
+  id: 'goodspell',
+  name: 'Good Spell',
+  edition: '2024',
+  source: 'test-source',
+  level: 1,
+  school: 'Evocation',
+  classes: ['sorcerer'],
+  castingTime: 'Action',
+  range: '60 feet',
+  components: 'V, S',
+  duration: 'Instantaneous',
+  description: 'Does something.\nUsing a Higher-Level Spell Slot. More.',
+}
+
 const goodArmor = {
   id: 'goodarmor',
   name: 'Good Armor',
@@ -58,13 +73,14 @@ const goodArmor = {
   strength: 13,
 }
 
-function load(overrides: Partial<Record<'sources' | 'species' | 'backgrounds' | 'classes' | 'armor', unknown>> = {}) {
+function load(overrides: Partial<Record<'sources' | 'species' | 'backgrounds' | 'classes' | 'armor' | 'spells', unknown>> = {}) {
   return validateCatalog({
     sources: [source],
     species: [goodSpecies],
     backgrounds: [goodBackground],
     classes: [goodClass],
     armor: [goodArmor],
+    spells: [goodSpell],
     ...overrides,
   })
 }
@@ -187,6 +203,32 @@ describe('validateCatalog', () => {
   test('rejects a species optional effect that is not a positive number', () => {
     expect(load({ species: [{ ...goodSpecies, hitPointBonusPerLevel: 'lots' }] }).catalog.species).toHaveLength(0)
     expect(load({ species: [{ ...goodSpecies, freeSkillChoices: 0 }] }).catalog.species).toHaveLength(0)
+  })
+
+  describe('spells', () => {
+    test('accepts a good spell', () => {
+      const { catalog, messages } = load()
+      expect(messages).toEqual([])
+      expect(catalog.spells).toHaveLength(1)
+    })
+
+    test('rejects a spell with a level outside 0 to 9, a missing field, or no classes', () => {
+      expect(load({ spells: [{ ...goodSpell, level: 10 }] }).catalog.spells).toHaveLength(0)
+      expect(load({ spells: [{ ...goodSpell, level: 1.5 }] }).catalog.spells).toHaveLength(0)
+      expect(load({ spells: [{ ...goodSpell, range: '' }] }).catalog.spells).toHaveLength(0)
+      expect(load({ spells: [{ ...goodSpell, classes: [] }] }).catalog.spells).toHaveLength(0)
+      expect(load({ spells: [{ ...goodSpell, description: undefined }] }).catalog.spells).toHaveLength(0)
+    })
+
+    test('rejects a spell with no source, naming it', () => {
+      const { catalog, messages } = load({ spells: [{ ...goodSpell, source: undefined }] })
+      expect(catalog.spells).toHaveLength(0)
+      expect(messages[0]).toContain('goodspell')
+    })
+
+    test('a cantrip has level 0', () => {
+      expect(load({ spells: [{ ...goodSpell, level: 0 }] }).catalog.spells).toHaveLength(1)
+    })
   })
 
   describe('starting equipment options', () => {

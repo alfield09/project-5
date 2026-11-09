@@ -3,6 +3,7 @@
 // cleared and listed in `removed`, so the builder can tell the player (spec.md, "Edit later").
 import type { Catalog } from '../catalog/types'
 import type { Character } from './character'
+import { spellLimits, spellOptions } from './spells'
 
 export interface ReconcileResult {
   character: Character
@@ -41,6 +42,30 @@ export function reconcileCharacter(character: Character, catalog: Catalog): Reco
     const dropped = next.classSkills.filter((skill) => !kept.includes(skill))
     if (dropped.length > 0) removed.push(`class skills no longer available: ${dropped.join(', ')}`)
     next.classSkills = kept
+  }
+
+  // Spells must be on the chosen class's list, within its level 1 limits, and no more than it allows of each kind.
+  if ((next.spellIds ?? []).length > 0) {
+    const allowed = new Map(spellOptions(classEntry, catalog).map((spell) => [spell.id, spell]))
+    const limits = spellLimits(classEntry)
+    const kept: string[] = []
+    const dropped: string[] = []
+    let cantrips = 0
+    let leveled = 0
+
+    for (const id of next.spellIds ?? []) {
+      const spell = allowed.get(id)
+      const room = spell === undefined || limits === undefined ? false : spell.level === 0 ? cantrips < limits.cantrips : leveled < limits.spells
+      if (spell === undefined || !room) {
+        dropped.push(catalog.spells.find((entry) => entry.id === id)?.name ?? id)
+        continue
+      }
+      if (spell.level === 0) cantrips++
+      else leveled++
+      kept.push(id)
+    }
+    if (dropped.length > 0) removed.push('spells no longer available: ' + dropped.join(', '))
+    next.spellIds = kept
   }
 
   // Species skills only exist for species with free skill choices.

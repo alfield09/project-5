@@ -102,6 +102,56 @@ describe('reconcileCharacter', () => {
     expect(reconcileCharacter({ ...fighter, backgroundId: 'pirate' }, catalog).character.backgroundId).toBeUndefined()
   })
 
+  describe('spells', () => {
+    const sorcerer = { ...fighter, classId: 'sorcerer', classSkills: [], equipmentOptionId: 'A' }
+
+    test('consistent spell picks are kept', () => {
+      const picks = ['fire-bolt', 'light', 'burning-hands', 'detect-magic']
+      const { character, removed } = reconcileCharacter({ ...sorcerer, spellIds: picks }, catalog)
+      expect(character.spellIds).toEqual(picks)
+      expect(removed).toEqual([])
+    })
+
+    test('changing class clears spells that are not on the new class list, and says so', () => {
+      // The Paladin has Heroism but not Fire Bolt or Burning Hands
+      const { character, removed } = reconcileCharacter(
+        { ...sorcerer, classId: 'paladin', spellIds: ['fire-bolt', 'burning-hands', 'heroism'] },
+        catalog,
+      )
+      expect(character.spellIds).toEqual(['heroism'])
+      expect(removed).toEqual(['spells no longer available: Fire Bolt, Burning Hands'])
+    })
+
+    test('a class that does not cast keeps no spells', () => {
+      const { character, removed } = reconcileCharacter({ ...fighter, spellIds: ['fire-bolt', 'magic-missile'] }, catalog)
+      expect(character.spellIds).toEqual([])
+      expect(removed).toEqual(['spells no longer available: Fire Bolt, Magic Missile'])
+    })
+
+    test('spells above level 1 are not available yet', () => {
+      const { character } = reconcileCharacter({ ...sorcerer, spellIds: ['fireball', 'magic-missile'] }, catalog)
+      expect(character.spellIds).toEqual(['magic-missile'])
+    })
+
+    test('picks beyond the limit of each kind are dropped, keeping the first', () => {
+      // Sorcerer: 4 cantrips and 2 level 1 spells
+      const picks = ['fire-bolt', 'light', 'mage-hand', 'message', 'ray-of-frost', 'magic-missile', 'shield', 'sleep']
+      const { character, removed } = reconcileCharacter({ ...sorcerer, spellIds: picks }, catalog)
+      expect(character.spellIds).toEqual(['fire-bolt', 'light', 'mage-hand', 'message', 'magic-missile', 'shield'])
+      expect(removed).toEqual(['spells no longer available: Ray of Frost, Sleep'])
+    })
+
+    test('unknown spell ids are cleared by id', () => {
+      const { character, removed } = reconcileCharacter({ ...sorcerer, spellIds: ['made-up-spell', 'light'] }, catalog)
+      expect(character.spellIds).toEqual(['light'])
+      expect(removed).toEqual(['spells no longer available: made-up-spell'])
+    })
+
+    test('no spell list at all stays as it was', () => {
+      expect(reconcileCharacter(sorcerer, catalog).character.spellIds).toBeUndefined()
+    })
+  })
+
   test('does not change the input character', () => {
     const before = JSON.stringify(fighter)
     reconcileCharacter({ ...fighter, classId: 'sorcerer' }, catalog)

@@ -10,6 +10,8 @@ import CatalogStep from './ui/CatalogStep'
 import ChoicesStep from './ui/ChoicesStep'
 import RollPanel from './ui/RollPanel'
 import SheetPanel from './ui/SheetPanel'
+import SpellsStep from './ui/SpellsStep'
+import SpellsTab from './ui/SpellsTab'
 
 const newCharacter: Character = {
   edition: '2024',
@@ -80,6 +82,7 @@ export default function App({
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(start.saveStatus)
   const [rollMode, setRollMode] = useState<RollMode>('normal')
   const [rolls, setRolls] = useState<RollResult[]>([]) // newest first; not saved (spec.md, provisional)
+  const [view, setView] = useState<'sheet' | 'spells'>('sheet') // which part of the sheet is showing
 
   function change(patch: Partial<Character>) {
     const result = reconcileCharacter({ ...character, ...patch }, catalog)
@@ -135,11 +138,20 @@ export default function App({
             random={random}
           />
           <ChoicesStep character={character} onChange={change} />
+          <SpellsStep character={character} onChange={change} />
         </div>
 
         <div className="sheet-pane">
           <RollPanel mode={rollMode} onModeChange={setRollMode} history={rolls} onClear={() => setRolls([])} />
-          <SheetPanel character={character} onRoll={roll} />
+          <div role="group" aria-label="Sheet view" className="filters">
+            <button type="button" aria-pressed={view === 'sheet'} onClick={() => setView('sheet')}>
+              Stats
+            </button>
+            <button type="button" aria-pressed={view === 'spells'} onClick={() => setView('spells')}>
+              Spells
+            </button>
+          </div>
+          {view === 'sheet' ? <SheetPanel character={character} onRoll={roll} /> : <SpellsTab character={character} onRoll={roll} />}
         </div>
       </div>
 

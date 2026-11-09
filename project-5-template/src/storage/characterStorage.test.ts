@@ -16,6 +16,7 @@ const fighter: Character = {
   classSkills: ['Perception', 'Survival'],
   speciesSkills: [],
   equipmentOptionId: 'A',
+  spellIds: ['light', 'magic-missile'],
 }
 
 /** Store text directly, as if an old or edited version had saved it. */
@@ -39,6 +40,13 @@ describe('saving and loading', () => {
     if (result.status !== 'loaded') throw new Error('not loaded')
     expect(result.character.rolledScores).toEqual([15, 13, 13, 12, 10, 9])
     expect(result.character.scoreMethod).toBe('roll')
+  })
+
+  test('chosen spells survive', () => {
+    const storage = new MemoryStorage()
+    saveCharacter(storage, fighter)
+    const result = loadCharacter(storage)
+    expect(result.status === 'loaded' && result.character.spellIds).toEqual(['light', 'magic-missile'])
   })
 
   test('a half-filled character saves and loads too', () => {
@@ -110,6 +118,8 @@ describe('saved text that cannot be used', () => {
       'rolled too many': { ...fighter, rolledScores: [10, 10, 10, 10, 10, 10, 10] },
       'rolled out of range': { ...fighter, rolledScores: [19, 10, 10, 10, 10, 10] },
       'score not whole': { ...fighter, baseScores: { str: 10.5 } },
+      'spells not a list': { ...fighter, spellIds: 'fire-bolt' },
+      'spell id not text': { ...fighter, spellIds: [7] },
       'not an object': 'a string',
     }
     for (const [name, character] of Object.entries(cases)) {

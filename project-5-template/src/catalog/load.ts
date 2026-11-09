@@ -5,6 +5,7 @@ import armor2024 from './data/2024/armor.json'
 import backgrounds2024 from './data/2024/backgrounds.json'
 import classes2024 from './data/2024/classes.json'
 import species2024 from './data/2024/species.json'
+import spells2024 from './data/2024/spells.json'
 import { validateCatalog } from './validate'
 
 const result = validateCatalog({
@@ -13,6 +14,7 @@ const result = validateCatalog({
   backgrounds: backgrounds2024,
   classes: classes2024,
   armor: armor2024,
+  spells: spells2024,
 })
 
 export const catalog = result.catalog

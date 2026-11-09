@@ -111,7 +111,7 @@ describe('Paladin (Goliath, Acolyte)', () => {
     expect(result.armorClass).toBe(18) // Chain Mail 16 + Shield 2
     expect(result.maxHitPoints).toBe(11)
     expect(result.speed).toBe(35)
-    expect(result.spellcasting).toEqual({ ability: 'cha', saveDc: 13, attackBonus: 5 })
+    expect(result.spellcasting).toEqual({ ability: 'cha', saveDc: 13, attackBonus: 5, slots: [2] })
     expect(result.warnings).toEqual([])
   })
 })
@@ -143,7 +143,7 @@ describe('Sorcerer (Human, Criminal)', () => {
     expect(result.armorClass).toBe(12) // no armor: 10 + 2 Dex
     expect(result.maxHitPoints).toBe(8)
     expect(result.speed).toBe(30)
-    expect(result.spellcasting).toEqual({ ability: 'cha', saveDc: 12, attackBonus: 4 })
+    expect(result.spellcasting).toEqual({ ability: 'cha', saveDc: 12, attackBonus: 4, slots: [2] })
     expect(result.warnings).toEqual([])
   })
 })

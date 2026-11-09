@@ -150,6 +150,7 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
     ability: casting.ability,
     saveDc: 8 + modifiers[casting.ability] + proficiency,
     attackBonus: modifiers[casting.ability] + proficiency,
+    slots: casting.level1.slots,
   }
 
   const derived: Derived = {

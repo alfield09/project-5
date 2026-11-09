@@ -36,6 +36,18 @@ export interface Species extends EntryBase {
   traits: Trait[]
 }
 
+/** One spell from the SRD spell descriptions. `classes` lists the class ids whose spell list includes it. */
+export interface Spell extends EntryBase {
+  level: number // 0 for a cantrip
+  school: string
+  classes: string[]
+  castingTime: string
+  range: string
+  components: string
+  duration: string
+  description: string // paragraphs separated by line breaks
+}
+
 /** One armor or shield from the SRD Armor table. For a shield, armorClass is the bonus it adds. */
 export interface Armor extends EntryBase {
   category: 'light' | 'medium' | 'heavy' | 'shield'
@@ -84,4 +96,5 @@ export interface Catalog {
   backgrounds: Background[]
   classes: ClassEntry[]
   armor: Armor[]
+  spells: Spell[]
 }

@@ -144,7 +144,8 @@ describe('building a character in the page', () => {
 
     expect(stat('Armor class')).toBe('13') // 10 + 3 Dex (15 + 2 from the background = 17)
     expect(stat('Spell save DC')).toBe('12') // 8 + 2 Cha (14 + 0 = 14) + 2
-    expect(screen.queryByLabelText('Shield')).toBeNull() // there is no armor or shield dropdown any more
+    // There is no armor or shield choice any more (the Sorcerer's Shield spell is a different thing, in the spell list)
+    expect(within(screen.getByRole('group', { name: /Starting equipment/ })).queryByLabelText('Shield')).toBeNull()
     expect(screen.queryByLabelText('Worn armor')).toBeNull()
   })
 

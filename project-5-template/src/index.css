@@ -295,3 +295,82 @@ footer {
   font-size: 0.85rem;
   color: #aab1b8;
 }
+
+/* Spells: the picker in the builder and the chosen spells on the sheet. */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+
+.filters button {
+  min-height: 44px;
+}
+
+.filters button[aria-pressed='true'] {
+  background: #e0812b;
+  color: #1f2328;
+  border-color: #e0812b;
+}
+
+.spell-options,
+.spell-list {
+  padding: 0;
+  list-style: none;
+  max-height: 28rem;
+  overflow-y: auto;
+}
+
+.spell-options li,
+.spell-list li {
+  padding: 4px 0;
+  border-bottom: 1px solid #2f353b;
+}
+
+.spell-list {
+  max-height: none;
+}
+
+.tag {
+  font-size: 0.8rem;
+  color: #aab1b8;
+}
+
+.spell-details dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 4px 16px;
+  margin: 8px 0;
+}
+
+.spell-details dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.spell-details dd {
+  margin: 0;
+}
+
+details summary {
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.spell-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.spell-row details {
+  flex: 1;
+}
+
+.roll-attack {
+  min-height: 44px;
+  white-space: nowrap;
+}
