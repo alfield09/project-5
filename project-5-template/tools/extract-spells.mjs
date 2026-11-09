@@ -38,12 +38,21 @@ function repairCharacters(text) {
 }
 
 // A paragraph that runs across a page break arrives as two lines. Join a line that clearly continues the
-// one before it: it starts with a lowercase letter or "(" and the one before does not end a sentence.
-function joinBrokenParagraphs(paragraphs) {
+// one before it: the one before does not end a sentence, and the new line starts with a lowercase letter or "(".
+//
+// A continuation can also start with a capital letter (an ability or damage type). Tables, bullet lists and creature
+// stat blocks also have capital-letter lines that must stay separate, so those joins are allowed only for the spells
+// below, where the split falls in the middle of a sentence. Each was checked by reading the PDF text:
+const CAPITAL_JOINS = new Set(['Antipathy/Sympathy', 'Cone of Cold', 'Find Steed', 'Harm', 'Sleet Storm'])
+const LONG_LINE = 80
+const joins = []
+function joinBrokenParagraphs(paragraphs, spellName) {
   const joined = []
   for (const line of paragraphs) {
     const previous = joined[joined.length - 1]
-    const continues = previous !== undefined && /^[a-z(]/.test(line) && !/[.!?:;)"”]$/.test(previous) && !previous.endsWith('--')
+    const unfinished = previous !== undefined && !/[.!?:;)"”•]$/.test(previous) && !previous.endsWith('--')
+    const continues = unfinished && (/^[a-z(]/.test(line) || (CAPITAL_JOINS.has(spellName) && previous.length >= LONG_LINE))
+    if (continues && !/^[a-z(]/.test(line)) joins.push(`${spellName}: "...${previous.slice(-30)}" + "${line.slice(0, 30)}..."`)
     if (!continues) joined.push(line)
     else if (/[a-z]-$/.test(previous)) joined[joined.length - 1] = previous.slice(0, -1) + line // a word split across lines
     else joined[joined.length - 1] = `${previous} ${line}`
@@ -82,7 +91,7 @@ starts.forEach((at, index) => {
     .slice(blockEnd + 1, nextStart)
     .filter((line) => !isNoise(line))
     .map((line) => line.trim())
-  const body = joinBrokenParagraphs(rawBody)
+  const body = joinBrokenParagraphs(rawBody, name)
   joinedCount += rawBody.length - body.length
 
   const id = name.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -115,4 +124,6 @@ fs.writeFileSync(outPath, JSON.stringify(spells, null, 2) + '\n')
 
 const byLevel = {}
 for (const s of spells) byLevel[s.level] = (byLevel[s.level] ?? 0) + 1
+console.log('joins that started with a capital letter (check these):')
+for (const join of joins) console.log('  ' + join)
 console.log(`wrote ${spells.length} spells to ${outPath}; by level: ${JSON.stringify(byLevel)}; paragraphs joined across page breaks: ${joinedCount}`)

@@ -1,6 +1,7 @@
 // Which spells a class can pick at level 1, and how many. Pure functions, no UI code.
 // The numbers come from the class tables in SRD 5.2.1 (stored in the catalog as the class's level 1 spellcasting).
 import type { Catalog, ClassEntry, Spell } from '../catalog/types'
+import type { Ability } from './abilityScores'
 
 export interface SpellLimits {
   cantrips: number // cantrips the class knows
@@ -51,4 +52,34 @@ export function countPicks(spellIds: string[], catalog: Catalog): { cantrips: nu
  */
 export function needsSpellAttack(spell: Spell): boolean {
   return /spell attack/i.test(spell.description)
+}
+
+const ABILITY_BY_NAME: Record<string, Ability> = {
+  strength: 'str',
+  dexterity: 'dex',
+  constitution: 'con',
+  intelligence: 'int',
+  wisdom: 'wis',
+  charisma: 'cha',
+}
+const ABILITY_WORDS = 'Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma'
+
+// Two ways the SRD words a saving throw that is made against the caster's spell save DC:
+//  - a creature "makes", "must succeed on", "fails" ... a <Ability> saving throw, for most spells;
+//  - "<Ability> Saving Throw: DC equals your spell save DC", in the stat blocks of summoned creatures.
+// A saving throw with a fixed DC ("make a DC 15 Intelligence saving throw") or one that is only a benefit
+// ("advantage on Dexterity saving throws") does not match either, so it gets no save DC.
+const TARGET_SAVE = new RegExp(`(?:makes?|must succeed on|succeeds? on|must make|fails?|failed) (?:an? )?(${ABILITY_WORDS}) saving throw`, 'gi')
+const CREATURE_SAVE = new RegExp(`(${ABILITY_WORDS}) Saving Throw: (?:Your spell save DC|DC equals your spell save DC)`, 'g')
+
+/** The abilities of the saving throws this spell calls for against the caster's spell save DC, in the order the text gives them. */
+export function savingThrowAbilities(spell: Spell): Ability[] {
+  const hits: { at: number; ability: Ability }[] = []
+  for (const pattern of [TARGET_SAVE, CREATURE_SAVE]) {
+    for (const match of spell.description.matchAll(pattern)) {
+      hits.push({ at: match.index ?? 0, ability: ABILITY_BY_NAME[match[1].toLowerCase()] })
+    }
+  }
+  const ordered = hits.sort((a, b) => a.at - b.at).map((hit) => hit.ability)
+  return [...new Set(ordered)]
 }

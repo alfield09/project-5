@@ -331,3 +331,87 @@ describe('rolling a spell attack from the Spells view', () => {
     expect(rollButtons()).toEqual([])
   })
 })
+
+describe('the save DC shown on each spell', () => {
+  const chosenRow = (name: string) => within(screen.getByRole('list', { name: 'Chosen spells' })).getByText(name).closest('li') as HTMLElement
+  const saveText = (name: string) => chosenRow(name).querySelector('.save-dc')?.textContent ?? null
+
+  test('spells that call for a saving throw show the ability and the DC; others show nothing', async () => {
+    const user = userEvent.setup()
+    render(<App storage={null} />)
+    await buildSorcerer(user)
+    const list = spellList('Sorcerer')
+    for (const name of ['Fire Bolt', 'Acid Splash', 'Burning Hands', 'Sleep']) await user.click(list.getByLabelText(name))
+    await openSpellsView(user)
+
+    // Charisma 14 (+2): DC 8 + 2 + 2 = 12
+    expect(saveText('Acid Splash')).toBe('Dexterity save, DC 12')
+    expect(saveText('Burning Hands')).toBe('Dexterity save, DC 12')
+    expect(saveText('Sleep')).toBe('Wisdom save, DC 12')
+    expect(saveText('Fire Bolt')).toBeNull() // it rolls to hit instead
+  })
+
+  test('a spell can show both a save DC and an attack button', async () => {
+    const user = userEvent.setup()
+    render(<App storage={null} />)
+    await buildSorcerer(user)
+    await user.click(spellList('Sorcerer').getByLabelText('Ice Knife'))
+    await openSpellsView(user)
+
+    expect(saveText('Ice Knife')).toBe('Dexterity save, DC 12')
+    expect(within(chosenRow('Ice Knife')).getByRole('button', { name: 'Roll Ice Knife spell attack, +4' })).toBeTruthy()
+  })
+
+  test('the DC follows the character: a higher Charisma raises every spell at once', async () => {
+    const user = userEvent.setup()
+    render(<App storage={null} />)
+    await buildSorcerer(user)
+    for (const name of ['Burning Hands', 'Sleep']) await user.click(spellList('Sorcerer').getByLabelText(name))
+
+    // Manual entry keeps the scores; Charisma 18 is +4, so the DC is 8 + 4 + 2 = 14
+    await user.click(screen.getByLabelText('Manual entry'))
+    const charisma = screen.getByLabelText('Charisma')
+    await user.clear(charisma)
+    await user.type(charisma, '18')
+    await openSpellsView(user)
+
+    expect(saveText('Burning Hands')).toBe('Dexterity save, DC 14')
+    expect(saveText('Sleep')).toBe('Wisdom save, DC 14')
+    expect(sheetSpellsView().getByText('Spell save DC').nextElementSibling?.textContent).toBe('14') // the same number as the top
+  })
+
+  test('no DC is shown until the sheet has its numbers', async () => {
+    const user = userEvent.setup()
+    render(<App storage={null} />)
+    await user.selectOptions(screen.getByLabelText('Class'), 'Sorcerer')
+    await user.click(spellList('Sorcerer').getByLabelText('Burning Hands'))
+    await openSpellsView(user)
+    expect(saveText('Burning Hands')).toBeNull() // the sheet is unfinished, so there is no DC yet
+  })
+
+  test('a Paladin spell that calls for a save shows it, and one that does not shows nothing', async () => {
+    const user = userEvent.setup()
+    render(<App storage={null} />)
+    await user.selectOptions(screen.getByLabelText('Species'), 'Goliath')
+    await user.selectOptions(screen.getByLabelText('Background'), 'Acolyte')
+    await user.selectOptions(screen.getByLabelText('Class'), 'Paladin')
+    await user.selectOptions(screen.getByLabelText('Strength'), '15')
+    await user.selectOptions(screen.getByLabelText('Dexterity'), '10')
+    await user.selectOptions(screen.getByLabelText('Constitution'), '13')
+    await user.selectOptions(screen.getByLabelText('Intelligence'), '8')
+    await user.selectOptions(screen.getByLabelText('Wisdom'), '12')
+    await user.selectOptions(screen.getByLabelText('Charisma'), '14')
+    await user.selectOptions(screen.getByLabelText('+2 to'), 'Charisma')
+    await user.selectOptions(screen.getByLabelText('+1 to'), 'Wisdom')
+    const classSkills = within(screen.getByRole('group', { name: /Class skills/ }))
+    await user.click(classSkills.getByLabelText('Athletics'))
+    await user.click(classSkills.getByLabelText('Persuasion'))
+    await user.click(screen.getByLabelText(/^A: Chain Mail/))
+    for (const name of ['Command', 'Heroism']) await user.click(spellList('Paladin').getByLabelText(name))
+    await openSpellsView(user)
+
+    // Charisma 14 + 2 = 16 (+3): DC 8 + 3 + 2 = 13, the approved Paladin's number
+    expect(saveText('Command')).toBe('Wisdom save, DC 13')
+    expect(saveText('Heroism')).toBeNull()
+  })
+})

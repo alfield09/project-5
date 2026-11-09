@@ -58,6 +58,22 @@ describe('SRD 5.2.1 catalog', () => {
     expect(catalog.spells.find((spell) => spell.id === 'shield')?.description).toContain('+5 bonus to AC')
   })
 
+  test('sentences split across a page break in the PDF are whole again', () => {
+    const text = (id: string) => catalog.spells.find((spell) => spell.id === id)?.description ?? ''
+    expect(text('cone-of-cold')).toContain('makes a Constitution saving throw, taking 8d8 Cold damage')
+    expect(text('sleet-storm')).toContain('must succeed on a Dexterity saving throw or have the Prone condition')
+    expect(text('harm')).toContain('it takes 14d6 Necrotic damage')
+    expect(text('antipathy-sympathy')).toContain('makes a Wisdom saving throw when it comes within 120 feet')
+    expect(text('find-steed')).toContain('Hit Dice [d10s] equal to the spell')
+  })
+
+  test('tables and stat blocks keep their separate lines', () => {
+    const lines = (id: string) => (catalog.spells.find((spell) => spell.id === id)?.description ?? '').split('\n')
+    expect(lines('creation').some((line) => line.startsWith('Duration 24 hours'))).toBe(true)
+    expect(lines('animate-objects').some((line) => line.startsWith('Senses Blindsight'))).toBe(true)
+    expect(lines('commune-with-nature').some((line) => line.startsWith('For example, you could'))).toBe(true)
+  })
+
   test('every spell id is unique and every spell points to the SRD source', () => {
     expect(new Set(catalog.spells.map((spell) => spell.id)).size).toBe(catalog.spells.length)
     expect(catalog.spells.every((spell) => spell.source === 'srd-5.2.1' && spell.edition === '2024')).toBe(true)

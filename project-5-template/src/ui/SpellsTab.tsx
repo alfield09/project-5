@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { catalog } from '../catalog/load'
 import type { Character } from '../engine/character'
 import { deriveCharacter } from '../engine/derive'
-import { countPicks, needsSpellAttack, pickedSpells, spellLimits } from '../engine/spells'
+import { countPicks, needsSpellAttack, pickedSpells, savingThrowAbilities, spellLimits } from '../engine/spells'
 import { ABILITY_NAMES, formatModifier, levelLabel } from './labels'
 import SpellDetails from './SpellDetails'
 import type { RollHandler } from './SheetPanel'
@@ -103,6 +103,11 @@ export default function SpellsTab({ character, onRoll }: { character: Character;
                 </summary>
                 <SpellDetails spell={spell} />
               </details>
+              {casting && savingThrowAbilities(spell).length > 0 && (
+                <span className="save-dc">
+                  {savingThrowAbilities(spell).map((ability) => ABILITY_NAMES[ability]).join(' / ')} save, DC {casting.saveDc}
+                </span>
+              )}
               {casting && needsSpellAttack(spell) && (
                 <button
                   type="button"
