@@ -1,0 +1,11 @@
+/* Minimal base styles; Sheetforge colors and type are decided when the first real screens are built. */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #1f2328;
+  color: #e6e8ea;
+}
+
+main {
+  padding: 16px;
+}

@@ -44,4 +44,12 @@ When the Developer directs the Agent to save a transcript, save the entire text 
 
 # Project
 
-Fill in as the project takes shape: how to run it locally, how to test it, and any commands or structure that aren't obvious from the code.
+Sheetforge: a static React + TypeScript site built with Vite. Needs Node.js (LTS). Run all commands from this folder.
+
+- `npm install`: install dependencies (first time only).
+- `npm run dev`: local preview with live reload (opens at http://localhost:5173 by default).
+- `npm test`: run the automated tests once (Vitest). Calculation tests live next to the engine in `src/engine/`.
+- `npm run build`: type-check and build into `dist/` for hosting.
+- `npm run lint`: check code with oxlint.
+
+Structure and rules are in `spec.md` (Architecture): `src/catalog`, `src/rules`, `src/engine`, `src/storage`, `src/ui`. Folders are created when the first file for them exists.
