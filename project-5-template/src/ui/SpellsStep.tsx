@@ -6,7 +6,7 @@ import type { Spell } from '../catalog/types'
 import type { Character } from '../engine/character'
 import { chosenOrder } from '../engine/classOptions'
 import { countPicks, spellLimits, spellOptions, spellbookOptions } from '../engine/spells'
-import { levelLabel } from './labels'
+import { levelLabel, leveledSpellsLabel } from './labels'
 import SpellDetails from './SpellDetails'
 
 interface Props {
@@ -36,7 +36,7 @@ function SpellRow({ spell, checked, disabled, onToggle }: { spell: Spell; checke
 export default function SpellsStep({ character, onChange }: Props) {
   const classEntry = catalog.classes.find((entry) => entry.id === character.classId)
   const order = chosenOrder(classEntry, character.orderId) // the Thaumaturge and Magician know one more cantrip
-  const limits = spellLimits(classEntry, order)
+  const limits = spellLimits(classEntry, order, character.level)
   const picks = character.spellIds ?? []
   const bookPicks = character.spellbookIds ?? []
   const counts = countPicks(picks, catalog)
@@ -53,14 +53,15 @@ export default function SpellsStep({ character, onChange }: Props) {
     return (
       <section aria-labelledby="spells-step-heading">
         <h2 id="spells-step-heading">Spells</h2>
-        <p>{classEntry.name}s do not cast spells at level 1.</p>
+        <p>{classEntry.name}s do not cast spells at level {character.level}.</p>
       </section>
     )
   }
 
   const hasBook = limits.spellbook !== undefined
-  const bookOptions = spellbookOptions(classEntry, catalog)
-  const options = spellOptions(classEntry, catalog, bookPicks, order)
+  const leveled = leveledSpellsLabel(limits.maxSpellLevel)
+  const bookOptions = spellbookOptions(classEntry, catalog, character.level)
+  const options = spellOptions(classEntry, catalog, bookPicks, order, character.level)
 
   function toggle(spell: Spell) {
     if (picks.includes(spell.id)) {
@@ -83,7 +84,7 @@ export default function SpellsStep({ character, onChange }: Props) {
       {hasBook && (
         <>
           <p role="status" className="book-count">
-            Spellbook: {bookPicks.length} of {limits.spellbook} chosen. You prepare your level 1 spells from the spellbook.
+            Spellbook: {bookPicks.length} of {limits.spellbook} chosen. You prepare your {leveled} from the spellbook.
           </p>
           <ul className="spell-options" aria-label={`${classEntry.name} spellbook`}>
             {bookOptions.map((spell) => (
@@ -101,8 +102,8 @@ export default function SpellsStep({ character, onChange }: Props) {
 
       <p role="status" className="pick-counts">
         {limits.cantrips > 0 && <span>Cantrips: {counts.cantrips} of {limits.cantrips} chosen. </span>}
-        <span>Level 1 spells: {counts.spells} of {limits.spells} chosen.</span>
-        {hasBook && bookPicks.length === 0 && <span> Fill your spellbook first to prepare level 1 spells.</span>}
+        <span>{leveled.charAt(0).toUpperCase() + leveled.slice(1)}: {counts.spells} of {limits.spells} chosen.</span>
+        {hasBook && bookPicks.length === 0 && <span> Fill your spellbook first to prepare {leveled}.</span>}
       </p>
 
       <ul className="spell-options" aria-label={`${classEntry.name} spells`}>

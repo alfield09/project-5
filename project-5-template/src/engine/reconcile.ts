@@ -1,9 +1,10 @@
 // Keeps a character's choices consistent after an edit.
 // One rule handles every case: when a change makes an earlier choice invalid, the invalid choice is
 // cleared and listed in `removed`, so the builder can tell the player (spec.md, "Edit later").
-// The choices are checked in the order they depend on each other: class, then its order and skills, then spells.
+// The choices are checked in the order they depend on each other: class and level, then its improvements, order and skills, then spells.
 import type { Catalog } from '../catalog/types'
 import type { Character } from './character'
+import { improvementLevels, invocationLimit } from './classLevels'
 import { chosenOrder, proficientSkillNames } from './classOptions'
 import { spellLimits, spellOptions, spellbookOptions } from './spells'
 
@@ -65,6 +66,19 @@ export function reconcileCharacter(character: Character, catalog: Catalog): Reco
     next.speciesSkills = next.speciesSkills.slice(0, limit)
   }
 
+  // Ability Score Improvements exist only at the levels the class gives them, up to the character's level.
+  if (Object.keys(next.abilityImprovements ?? {}).length > 0) {
+    const allowed = improvementLevels(classEntry, next.level).map(String)
+    const kept: NonNullable<Character['abilityImprovements']> = {}
+    const dropped: string[] = []
+    for (const [at, pick] of Object.entries(next.abilityImprovements ?? {})) {
+      if (allowed.includes(at)) kept[at] = pick
+      else dropped.push(`level ${at}`)
+    }
+    if (dropped.length > 0) removed.push(`Ability Score Improvements for levels the character no longer has: ${dropped.join(', ')}`)
+    next.abilityImprovements = kept
+  }
+
   // The order (Divine Order, Primal Order) must be one the chosen class offers.
   if (next.orderId !== undefined && chosenOrder(classEntry, next.orderId) === undefined) {
     removed.push(`the order choice "${next.orderId}", which the class does not offer`)
@@ -102,7 +116,7 @@ export function reconcileCharacter(character: Character, catalog: Catalog): Reco
     const { kept, dropped } = keepValid(
       next.invocationIds ?? [],
       (id) => inEdition(catalog.invocations, id) !== undefined,
-      classEntry?.invocations?.count ?? 0,
+      1,
       (id) => inEdition(catalog.invocations, id)?.name ?? id,
     )
     if (dropped.length > 0) removed.push(`invocations no longer available: ${dropped.join(', ')}`)
@@ -111,11 +125,11 @@ export function reconcileCharacter(character: Character, catalog: Catalog): Reco
 
   // A spellbook (Wizard) holds leveled spells from the class's list, up to its size.
   if ((next.spellbookIds ?? []).length > 0) {
-    const allowed = new Set(spellbookOptions(classEntry, catalog).map((spell) => spell.id))
+    const allowed = new Set(spellbookOptions(classEntry, catalog, next.level).map((spell) => spell.id))
     const { kept, dropped } = keepValid(
       next.spellbookIds ?? [],
       (id) => allowed.has(id),
-      spellLimits(classEntry)?.spellbook ?? 0,
+      spellLimits(classEntry, undefined, next.level)?.spellbook ?? 0,
       (id) => catalog.spells.find((spell) => spell.id === id)?.name ?? id,
     )
     if (dropped.length > 0) removed.push('spellbook spells no longer available: ' + dropped.join(', '))
@@ -125,8 +139,8 @@ export function reconcileCharacter(character: Character, catalog: Catalog): Reco
   // Spells must be on the chosen class's list (for a spellbook class, in the spellbook), within its level 1 limits
   // (counting a cantrip the order adds), and no more than it allows of each kind.
   if ((next.spellIds ?? []).length > 0) {
-    const allowed = new Map(spellOptions(classEntry, catalog, next.spellbookIds ?? [], order).map((spell) => [spell.id, spell]))
-    const limits = spellLimits(classEntry, order)
+    const allowed = new Map(spellOptions(classEntry, catalog, next.spellbookIds ?? [], order, next.level).map((spell) => [spell.id, spell]))
+    const limits = spellLimits(classEntry, order, next.level)
     const kept: string[] = []
     const dropped: string[] = []
     let cantrips = 0

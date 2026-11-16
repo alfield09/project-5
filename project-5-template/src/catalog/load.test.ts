@@ -189,7 +189,7 @@ describe('SRD 5.2.1 catalog', () => {
       expect(casting('druid')).toEqual({ ability: 'wis', level1: { cantrips: 2, preparedSpells: 4, slots: [2] } })
       expect(casting('ranger')).toEqual({ ability: 'wis', level1: { cantrips: 0, preparedSpells: 2, slots: [2] } })
       expect(casting('warlock')).toEqual({ ability: 'cha', level1: { cantrips: 2, preparedSpells: 2, slots: [1] } }) // Pact Magic: one level 1 slot
-      expect(casting('wizard')).toEqual({ ability: 'int', level1: { cantrips: 3, preparedSpells: 4, slots: [2], spellbookSpells: 6 } })
+      expect(casting('wizard')).toEqual({ ability: 'int', level1: { cantrips: 3, preparedSpells: 4, slots: [2], spellbookSpells: 6 }, spellbookPerLevel: 2 })
       for (const id of ['barbarian', 'fighter', 'monk', 'rogue']) expect(casting(id), id).toBeUndefined()
     })
 

@@ -464,3 +464,119 @@ Level 1 slots:        2
 ```
 
 Note: Arcana and Nature are +6: Int +1, proficiency +2, and the Magician bonus of +3.
+
+# Leveled characters (drafted Nov 16)
+
+**These four are drafted by the Agent and not yet reviewed by the Developer.** They test what levels change: proficiency bonus, hit points, Ability Score Improvements, spell numbers, and the class numbers in each Features table. As before, check the numbers by hand against the SRD (the Features tables in each class), not against mine. The three characters at level 5 reuse the approved level 1 choices, plus one Ability Score Improvement at level 4.
+
+How hit points work (SRD): level 1 is the highest roll on the hit die plus the Constitution modifier. Each later level adds the die's average (half the die, plus 1: d6 is 4, d8 is 5, d10 is 6, d12 is 7) plus the Constitution modifier. The Constitution modifier is the one the character has now, so a later improvement counts for every level. The Dwarf's Toughness adds 1 per level.
+
+## Fighter, level 5 (Dwarf, Soldier)
+
+Status: drafted by the Agent on Nov 16, not verified by the Developer.
+
+```
+Same choices as the approved level 1 Fighter, plus:
+Level: 5
+Level 4 Ability Score Improvement: +2 Strength (17 becomes 19)
+
+EXPECTED
+Final scores:           STR 19   DEX 13   CON 15   INT 10   WIS 12   CHA 8
+Modifiers:              STR +4   DEX +1   CON +2   INT 0    WIS +1   CHA -1
+Proficiency bonus:      +3   (levels 5 to 8)
+Saving throws:          STR +7   DEX +1   CON +5   INT 0    WIS +1   CHA -1   (STR and CON are proficient)
+
+Skills (Athletics, Intimidation, Perception, Survival are proficient):
+  Acrobatics: +1   Animal Handling: +1   Arcana: 0   Athletics: +7   Deception: -1   History: 0
+  Insight: +1   Intimidation: +2   Investigation: 0   Medicine: +1   Nature: 0   Perception: +4
+  Performance: -1   Persuasion: -1   Religion: 0   Sleight of Hand: +1   Stealth: +1   Survival: +4
+
+Passive Perception:    14
+AC:                    16   (Chain Mail, unchanged)
+HP:                    49   (10 + 2, then 4 levels of 6 + 2, plus 5 for Dwarven Toughness)
+Hit dice:              5d10
+From the Features table, row 5:  Second Wind 3, Weapon Mastery 4. Features gained: Fighting Style, Second Wind,
+  Weapon Mastery, Action Surge, Tactical Mind, Fighter Subclass, Ability Score Improvement, Extra Attack, Tactical Shift.
+The sheet says the Fighting Style is not calculated.
+```
+
+## Sorcerer, level 5 (Human, Criminal)
+
+Status: drafted by the Agent on Nov 16, not verified by the Developer.
+
+```
+Same choices as the approved level 1 Sorcerer, plus:
+Level: 5
+Level 4 Ability Score Improvement: +2 Charisma (15 becomes 17)
+
+EXPECTED
+Final scores:           STR 9    DEX 15   CON 14   INT 10   WIS 12   CHA 17
+Modifiers:              STR -1   DEX +2   CON +2   INT 0    WIS +1   CHA +3
+Proficiency bonus:      +3
+Saving throws:          STR -1   DEX +2   CON +5   INT 0    WIS +1   CHA +6   (CON and CHA are proficient)
+
+Skills (Arcana, Persuasion, Perception, Sleight of Hand, Stealth are proficient):
+  Acrobatics: +2   Animal Handling: +1   Arcana: +3   Athletics: -1   Deception: +3   History: 0
+  Insight: +1   Intimidation: +3   Investigation: 0   Medicine: +1   Nature: 0   Perception: +4
+  Performance: +3   Persuasion: +6   Religion: 0   Sleight of Hand: +5   Stealth: +5   Survival: +1
+
+AC:                    12   (no armor: 10 + 2 Dex)
+HP:                    32   (6 + 2, then 4 levels of 4 + 2)
+Hit dice:              5d6
+Spell save DC:         14   (8 + 3 proficiency + 3 Charisma)
+Spell attack bonus:    +6
+From the Features table, row 5:  Sorcery Points 5, cantrips 5, prepared spells 9, spell slots 4 / 3 / 2 (levels 1, 2, 3).
+```
+
+## Warlock, level 5 (Human, Criminal)
+
+Status: drafted by the Agent on Nov 16, not verified by the Developer.
+
+```
+Same choices as the approved level 1 Warlock (package B, no armor), plus:
+Level: 5
+Level 4 Ability Score Improvement: +2 Charisma (15 becomes 17)
+Eldritch Invocations: all five the catalog holds (the table gives 5 at level 5)
+
+EXPECTED
+Final scores:           STR 8    DEX 16   CON 14   INT 10   WIS 12   CHA 17
+Modifiers:              STR -1   DEX +3   CON +2   INT 0    WIS +1   CHA +3
+Proficiency bonus:      +3
+Saving throws:          WIS +4   CHA +6   (the Warlock's proficient saves); STR -1, DEX +3, CON +2, INT 0
+
+Skills (Arcana, Deception, Perception, Sleight of Hand, Stealth are proficient):
+  Arcana: +3   Deception: +6   Perception: +4   Sleight of Hand: +6   Stealth: +6
+  (Acrobatics +3, Animal Handling +1, Athletics -1, History 0, Insight +1, Intimidation +3, Investigation 0,
+   Medicine +1, Nature 0, Performance +3, Persuasion +3, Religion 0, Survival +1)
+
+AC:                    16   (Armor of Shadows: 13 + 3 Dex, no armor worn)
+HP:                    38   (8 + 2, then 4 levels of 5 + 2)
+Hit dice:              5d8
+Spell save DC:         14
+Spell attack bonus:    +6
+From the Features table, row 5:  cantrips 3, prepared spells 6, Pact Magic: 2 slots, both of level 3.
+```
+
+## Fighter, level 20 (Dwarf, Soldier)
+
+Status: drafted by the Agent on Nov 16, not verified by the Developer.
+
+```
+Same choices as the approved level 1 Fighter, plus:
+Level: 20
+Ability Score Improvements (the Fighter has them at levels 4, 6, 8, 12, 14 and 16): each is +1 Dexterity and +1 Constitution
+
+EXPECTED
+Final scores:           STR 17   DEX 19   CON 20   INT 10   WIS 12   CHA 8     (13 + 6 = 19; 15 + 6 = 21, which stops at 20)
+Modifiers:              STR +3   DEX +4   CON +5
+Proficiency bonus:      +6   (levels 17 to 20)
+Saving throws:          STR +9   CON +11
+HP:                     244  (10 + 5, then 19 levels of 6 + 5, plus 20 for Dwarven Toughness)
+Hit dice:              20d10
+AC:                    16   (Chain Mail)
+From the Features table, row 20:  Second Wind 4, Weapon Mastery 6. The Features list includes Three Extra Attacks and Epic Boon.
+```
+
+## Known limits of levels above 1 (Nov 16)
+
+The sheet shows these numbers for any level from 1 to 20. Some class features also change numbers, and they are shown as text but not yet added to the sheet. The sheet names the ones a character has under "These features can change numbers but are not calculated yet": Fighting Style, Expertise gained after the Rogue's level 1, Jack of All Trades, Aura of Protection, Fast Movement, Unarmored Movement, Reliable Talent, Slippery Mind, Disciplined Survivor, Primal Champion, Body and Mind, and Scholar. Subclasses are not in yet. The Warlock can pick only the five invocations the catalog holds, even when the table allows more.

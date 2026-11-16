@@ -128,6 +128,9 @@ function spellcastingErrors(value: unknown): string[] {
     if (!countsOk) errors.push('spellcasting.level1 cantrips and preparedSpells must be whole numbers')
     if (level1.spellbookSpells !== undefined && !(Number.isInteger(level1.spellbookSpells) && (level1.spellbookSpells as number) > 0)) errors.push('spellcasting.level1.spellbookSpells must be a positive whole number')
     if (!slotsOk) errors.push('spellcasting.level1.slots must be a list of whole numbers')
+    if (value.spellbookPerLevel !== undefined && !(Number.isInteger(value.spellbookPerLevel) && (value.spellbookPerLevel as number) > 0)) {
+      errors.push('spellcasting.spellbookPerLevel must be a positive whole number')
+    }
   }
   return errors.filter((error): error is string => error !== undefined)
 }
@@ -234,6 +237,86 @@ function classFeatureErrors(raw: Raw): string[] {
   return found
 }
 
+const wholeNumber = (value: unknown) => typeof value === 'number' && Number.isInteger(value) && value >= 0
+
+function levelSpellcastingErrors(value: unknown, label: string): string[] {
+  if (!isRecord(value)) return [`${label}.spellcasting must be an object`]
+  const errors: string[] = []
+  if (!wholeNumber(value.cantrips) || !wholeNumber(value.prepared)) errors.push(`${label}.spellcasting cantrips and prepared must be whole numbers`)
+  if (value.slots !== undefined && !(Array.isArray(value.slots) && value.slots.length <= 9 && value.slots.every(wholeNumber))) {
+    errors.push(`${label}.spellcasting.slots must be up to nine whole numbers`)
+  }
+  if (value.pact !== undefined) {
+    const pact = value.pact
+    const levelOk = isRecord(pact) && Number.isInteger(pact.slotLevel) && (pact.slotLevel as number) >= 1 && (pact.slotLevel as number) <= 9
+    if (!isRecord(pact) || !wholeNumber(pact.slots) || !levelOk) errors.push(`${label}.spellcasting.pact must have slots and a slot level from 1 to 9`)
+  }
+  if (value.slots === undefined && value.pact === undefined) errors.push(`${label}.spellcasting needs slots or pact`)
+  return errors
+}
+
+/** A feature name as the table lists it can carry a note ("Indomitable (two uses)"); the description is named without it. */
+const baseFeatureName = (name: string) => name.replace(/ \(.*\)$/, '').toLowerCase()
+
+/** The 20-row level table and the feature descriptions of a class (SRD "<Class> Features"). */
+function levelErrors(raw: Raw): string[] {
+  const errors: string[] = []
+  const levels = raw.levels
+  if (!Array.isArray(levels) || levels.length !== 20) return ['levels must hold exactly 20 rows (levels 1 to 20)']
+
+  levels.forEach((row, index) => {
+    const label = `levels[${index}]`
+    if (!isRecord(row)) {
+      errors.push(`${label} must be an object`)
+      return
+    }
+    if (row.level !== index + 1) errors.push(`${label}.level must be ${index + 1}`)
+    // The SRD's proficiency bonus is +2 at level 1 and rises by 1 every four levels. A table row that disagrees is a data error.
+    if (row.proficiencyBonus !== 2 + Math.floor(index / 4)) errors.push(`${label}.proficiencyBonus must be ${2 + Math.floor(index / 4)}`)
+    if (!Array.isArray(row.features) || !row.features.every((name) => typeof name === 'string' && name !== '')) errors.push(`${label}.features must be a list of names`)
+    if (!isRecord(row.columns) || !Object.values(row.columns).every((value) => typeof value === 'string')) errors.push(`${label}.columns must be text values`)
+    if (row.spellcasting !== undefined) errors.push(...levelSpellcastingErrors(row.spellcasting, label))
+  })
+  if (errors.length > 0) return errors
+
+  const rows = levels as { features: string[]; spellcasting?: Raw }[]
+  const casts = raw.spellcasting !== undefined
+  rows.forEach((row, index) => {
+    if (casts !== (row.spellcasting !== undefined)) errors.push(`levels[${index}].spellcasting must be present exactly when the class casts spells`)
+  })
+
+  // Level 1 of the table must agree with the level 1 numbers the class already carries.
+  if (casts && isRecord(raw.spellcasting) && isRecord(raw.spellcasting.level1) && isRecord(rows[0].spellcasting)) {
+    const level1 = raw.spellcasting.level1
+    const table = rows[0].spellcasting
+    const tableSlots = Array.isArray(table.slots) ? table.slots : isRecord(table.pact) ? [table.pact.slots] : []
+    if (level1.cantrips !== table.cantrips || level1.preparedSpells !== table.prepared || JSON.stringify(level1.slots) !== JSON.stringify(tableSlots)) {
+      errors.push('spellcasting.level1 does not match the level 1 row of levels')
+    }
+  }
+
+  // Every description must belong to a feature the table lists at that level.
+  const features = raw.features
+  if (!Array.isArray(features) || features.length === 0) return [...errors, 'features must be a non-empty list']
+  features.forEach((feature, index) => {
+    const valid =
+      isRecord(feature) &&
+      Number.isInteger(feature.level) &&
+      (feature.level as number) >= 1 &&
+      (feature.level as number) <= 20 &&
+      typeof feature.name === 'string' &&
+      typeof feature.text === 'string' &&
+      feature.text.length >= 20
+    if (!valid) {
+      errors.push(`features[${index}] needs a level from 1 to 20, a name and its text`)
+      return
+    }
+    const listed = rows[(feature.level as number) - 1].features.map(baseFeatureName)
+    if (!listed.includes(baseFeatureName(feature.name as string))) errors.push(`features[${index}] "${feature.name}" is not listed at level ${feature.level}`)
+  })
+  return errors
+}
+
 function classErrors(raw: Raw, armor: Armor[]): string[] {
   const errors = [
     text(raw.primaryAbility, 'primaryAbility'),
@@ -251,7 +334,7 @@ function classErrors(raw: Raw, armor: Armor[]): string[] {
   }
 
   const result = errors.filter((error): error is string => error !== undefined)
-  result.push(...equipmentErrors(raw.startingEquipment, armor), ...classFeatureErrors(raw))
+  result.push(...equipmentErrors(raw.startingEquipment, armor), ...classFeatureErrors(raw), ...levelErrors(raw))
   if (raw.spellcasting !== undefined) result.push(...spellcastingErrors(raw.spellcasting))
   return result
 }

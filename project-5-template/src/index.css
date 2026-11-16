@@ -477,6 +477,8 @@ details summary {
 
   .sheet-body .part.passives { grid-column: 3; grid-row: 3 / span 4; }
   .sheet-body .part.training { grid-column: 3; grid-row: 7 / span 6; }
+  .sheet-body .part.features { grid-column: 1 / -1; grid-row: 27; margin-top: 12px; }
+  .sheet-body .feature-list { padding: 0; list-style: none; }
 
   .sheet-body .abilities button,
   .sheet-body .stats > div {

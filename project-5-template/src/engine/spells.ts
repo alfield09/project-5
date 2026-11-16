@@ -1,7 +1,8 @@
-// Which spells a class can pick at level 1, and how many. Pure functions, no UI code.
-// The numbers come from the class tables in SRD 5.2.1 (stored in the catalog as the class's level 1 spellcasting).
+// Which spells a class can pick at a level, and how many. Pure functions, no UI code.
+// The numbers come from the class Features tables in SRD 5.2.1 (stored in the catalog as the class's `levels`).
 import type { Catalog, ClassEntry, ClassOrder, Spell } from '../catalog/types'
 import type { Ability } from './abilityScores'
+import { levelRow } from './classLevels'
 
 export interface SpellLimits {
   cantrips: number // cantrips the class knows, including any the chosen order adds
@@ -11,17 +12,20 @@ export interface SpellLimits {
 }
 
 /**
- * The class's level 1 limits, or undefined if the class does not cast spells.
+ * The class's limits at this level (level 1 when left out), or undefined if the class does not cast spells.
  * The Cleric's Thaumaturge and the Druid's Magician each add one cantrip; pass the chosen order to count it.
+ * A Warlock's highest spell level is its Pact Magic slot level. A Wizard's spellbook holds 6 spells at level 1 and 2 more per level.
  */
-export function spellLimits(classEntry: ClassEntry | undefined, order?: ClassOrder): SpellLimits | undefined {
+export function spellLimits(classEntry: ClassEntry | undefined, order?: ClassOrder, level = 1): SpellLimits | undefined {
   const casting = classEntry?.spellcasting
-  if (casting === undefined) return undefined
+  const row = levelRow(classEntry, level)?.spellcasting
+  if (casting === undefined || row === undefined) return undefined
+  const startingSpellbook = casting.level1.spellbookSpells
   return {
-    cantrips: casting.level1.cantrips + (order?.extraCantrips ?? 0),
-    spells: casting.level1.preparedSpells,
-    maxSpellLevel: casting.level1.slots.length, // one entry per spell level the class has slots for
-    spellbook: casting.level1.spellbookSpells,
+    cantrips: row.cantrips + (order?.extraCantrips ?? 0),
+    spells: row.prepared,
+    maxSpellLevel: row.pact === undefined ? (row.slots?.length ?? 0) : row.pact.slotLevel, // the highest level the class has slots for
+    spellbook: startingSpellbook === undefined ? undefined : startingSpellbook + (casting.spellbookPerLevel ?? 0) * (level - 1),
   }
 }
 
@@ -37,8 +41,8 @@ function classListSpells(classEntry: ClassEntry, catalog: Catalog, cantrips: boo
  * Every spell the class may pick, cantrips first, then by level, then by name.
  * A class with a spellbook (Wizard) prepares its leveled spells only from the spellbook, so pass the spellbook's ids.
  */
-export function spellOptions(classEntry: ClassEntry | undefined, catalog: Catalog, spellbookIds: string[] = [], order?: ClassOrder): Spell[] {
-  const limits = spellLimits(classEntry, order)
+export function spellOptions(classEntry: ClassEntry | undefined, catalog: Catalog, spellbookIds: string[] = [], order?: ClassOrder, level = 1): Spell[] {
+  const limits = spellLimits(classEntry, order, level)
   if (classEntry === undefined || limits === undefined) return []
 
   const options = classListSpells(classEntry, catalog, limits.cantrips > 0, limits.maxSpellLevel)
@@ -46,9 +50,9 @@ export function spellOptions(classEntry: ClassEntry | undefined, catalog: Catalo
   return options.filter((spell) => spell.level === 0 || spellbookIds.includes(spell.id))
 }
 
-/** The spells a spellbook can hold at level 1: the class's leveled spells up to its highest slot level. Empty if the class has no spellbook. */
-export function spellbookOptions(classEntry: ClassEntry | undefined, catalog: Catalog): Spell[] {
-  const limits = spellLimits(classEntry)
+/** The spells a spellbook can hold at this level: the class's leveled spells up to its highest slot level. Empty if the class has no spellbook. */
+export function spellbookOptions(classEntry: ClassEntry | undefined, catalog: Catalog, level = 1): Spell[] {
+  const limits = spellLimits(classEntry, undefined, level)
   if (classEntry === undefined || limits === undefined || limits.spellbook === undefined) return []
   return classListSpells(classEntry, catalog, false, limits.maxSpellLevel)
 }

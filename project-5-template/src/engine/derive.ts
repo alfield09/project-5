@@ -1,9 +1,10 @@
 // Calculates every derived number for a character from the choices and the catalog.
-// Pure functions only, with no UI code (spec.md, Structure rules). Rules are SRD 5.2.1, level 1.
-import type { Armor, Catalog } from '../catalog/types'
+// Pure functions only, with no UI code (spec.md, Structure rules). Rules are SRD 5.2.1.
+import type { Armor, Catalog, ClassFeature } from '../catalog/types'
 import { ABILITIES, abilityModifier, type Ability } from './abilityScores'
-import type { BackgroundBonus, Character, Derived, DeriveResult } from './character'
+import type { AbilityImprovement, BackgroundBonus, Character, Derived, DeriveResult } from './character'
 import { chosenOrder, proficientSkillNames } from './classOptions'
+import { featuresNotCalculated, featuresUpTo, improvementLevels, invocationLimit, isValidLevel, levelRow, maxHitPoints } from './classLevels'
 import { SKILLS, SKILL_NAMES } from './skills'
 
 const MAX_ABILITY_SCORE = 20
@@ -38,6 +39,16 @@ function applyBackgroundBonus(base: Record<Ability, number>, bonus: CompleteBonu
   return scores
 }
 
+/** Raise scores by the Ability Score Improvements gained by this level (in level order). No score goes above 20. */
+function applyImprovements(scores: Record<Ability, number>, picks: [number, AbilityImprovement][]): Record<Ability, number> {
+  const result = { ...scores }
+  for (const [, pick] of picks) {
+    const amount = pick.mode === 'plusTwo' ? 2 : 1
+    for (const ability of pick.abilities) result[ability] = Math.min(MAX_ABILITY_SCORE, result[ability] + amount)
+  }
+  return result
+}
+
 function armorClassFor(armor: Armor, dexModifier: number): number {
   const dexPart = armor.dex === 'full' ? dexModifier : armor.dex === 'max2' ? Math.min(dexModifier, 2) : 0
   return armor.armorClass + dexPart
@@ -49,7 +60,7 @@ const unique = (items: string[]) => [...new Set(items)]
 export function deriveCharacter(character: Character, catalog: Catalog): DeriveResult {
   const problems: string[] = []
 
-  if (character.level !== 1) problems.push('only level 1 is supported so far')
+  if (!isValidLevel(character.level)) problems.push('the level must be a whole number from 1 to 20')
 
   // ---- Look up the chosen entries ----
   const inEdition = <T extends { id: string; edition: string }>(list: T[], id: string | undefined) =>
@@ -83,8 +94,11 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
   const invocationRule = classEntry?.invocations
   const invocationIds = character.invocationIds ?? []
   const invocations = invocationIds.map((id) => inEdition(catalog.invocations, id))
+  const offered = catalog.invocations.filter((entry) => entry.edition === character.edition).length
+  const invocationCount = invocationLimit(classEntry, character.level, offered)
   if (invocationRule !== undefined) {
-    const { count, label } = invocationRule
+    const { label } = invocationRule
+    const { count } = invocationCount
     if (invocationIds.length !== count) problems.push(count === 1 ? `choose your ${label}` : `choose ${count} ${label}s`)
     else if (invocations.some((entry) => entry === undefined)) problems.push(`unknown ${label}`)
     else if (new Set(invocationIds).size !== count) problems.push(`the ${label}s must be different from each other`)
@@ -107,6 +121,16 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
       problems.push(`the background bonus must go to ${background.abilityScores.join(', ')}`)
     }
     if (bonus.plusTwo === bonus.plusOne) problems.push('the +2 and the +1 must go to different abilities')
+  }
+
+  // ---- Ability Score Improvements: each one the class has given by this level must be chosen ----
+  const improvementPicks: [number, AbilityImprovement][] = []
+  for (const at of improvementLevels(classEntry, character.level)) {
+    const pick = character.abilityImprovements?.[String(at)]
+    const needed = pick?.mode === 'plusTwo' ? 1 : 2
+    if (pick === undefined || pick.abilities.length !== needed) problems.push(`choose your level ${at} Ability Score Improvement`)
+    else if (new Set(pick.abilities).size !== needed) problems.push(`the two abilities of your level ${at} improvement must be different`)
+    else improvementPicks.push([at, pick])
   }
 
   // ---- Skill choices ----
@@ -141,7 +165,7 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
 
   // ---- Calculate ----
   const warnings: string[] = []
-  const finalScores = applyBackgroundBonus(base, bonus, background.abilityScores)
+  const finalScores = applyImprovements(applyBackgroundBonus(base, bonus, background.abilityScores), improvementPicks)
   const modifiers = {} as Record<Ability, number>
   for (const ability of ABILITIES) modifiers[ability] = abilityModifier(finalScores[ability])
 
@@ -195,12 +219,23 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
     warnings.push(`${armor.name} needs Strength ${armor.strength}, so Speed drops by 10 feet`)
   }
 
+  // Spell slots for this level. A Warlock's Pact Magic slots are all of one level; they are shown at that level.
   const casting = classEntry.spellcasting
+  const castingRow = levelRow(classEntry, character.level)?.spellcasting
+  const slotsAtLevel = (): number[] => {
+    if (castingRow?.pact !== undefined) {
+      const slots = new Array<number>(castingRow.pact.slotLevel).fill(0)
+      slots[castingRow.pact.slotLevel - 1] = castingRow.pact.slots
+      return slots
+    }
+    return castingRow?.slots ?? []
+  }
   const spellcasting = casting && {
     ability: casting.ability,
     saveDc: 8 + modifiers[casting.ability] + proficiency,
     attackBonus: modifiers[casting.ability] + proficiency,
-    slots: casting.level1.slots,
+    slots: slotsAtLevel(),
+    ...(castingRow?.pact !== undefined ? { pact: true } : {}),
   }
 
   // Tools: the background's, the class's fixed ones, and the ones the player picked (only valid picks of an allowed kind).
@@ -212,6 +247,10 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
         .filter((tool) => tool !== undefined && toolChoice.kinds.includes(tool.kind))
         .slice(0, toolChoice.count)
         .map((tool) => tool?.name ?? '')
+
+  if (invocationCount.short) warnings.push(`The catalog holds only ${offered} Eldritch Invocations, fewer than the Warlock gets at level ${character.level}`)
+  const uncalculated = featuresNotCalculated(classEntry, character.level)
+  if (uncalculated.length > 0) warnings.push(`These features can change numbers but are not calculated yet: ${uncalculated.join(', ')}`)
 
   const derived: Derived = {
     finalScores,
@@ -226,8 +265,7 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
     },
     initiative: modifiers.dex,
     armorClass,
-    // Level 1: the highest number on the hit die, plus Constitution, plus any species bonus per level.
-    maxHitPoints: classEntry.hitDie + modifiers.con + (species.hitPointBonusPerLevel ?? 0) * character.level,
+    maxHitPoints: maxHitPoints(classEntry.hitDie, character.level, modifiers.con, species.hitPointBonusPerLevel ?? 0),
     speed,
     darkvision: species.darkvision,
     proficientSaves: ABILITIES.filter((ability) => classEntry.savingThrows.includes(ability)),
@@ -239,6 +277,10 @@ export function deriveCharacter(character: Character, catalog: Catalog): DeriveR
       tools: unique([background.toolProficiency, ...classEntry.tools.fixed, ...chosenTools]),
     },
     spellcasting,
+    level: character.level,
+    hitDie: classEntry.hitDie,
+    features: featuresUpTo(classEntry, character.level) satisfies ClassFeature[],
+    classColumns: levelRow(classEntry, character.level)?.columns ?? {},
     warnings,
   }
   return { ok: true, derived }

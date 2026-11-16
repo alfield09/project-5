@@ -32,6 +32,17 @@ const goodSpecies = {
   traits: [{ name: 'Trait', text: 'Does something.' }],
 }
 
+/** The 20-row level table a class needs. Pass spellcasting numbers to give every row the same ones. */
+const levelRows = (spellcasting?: unknown) =>
+  Array.from({ length: 20 }, (_, index) => ({
+    level: index + 1,
+    proficiencyBonus: 2 + Math.floor(index / 4),
+    features: index === 0 ? ['Trait one'] : [],
+    columns: {},
+    ...(spellcasting === undefined ? {} : { spellcasting }),
+  }))
+const goodFeatures = [{ level: 1, name: 'Trait one', text: 'Does something useful for the character.' }]
+
 const goodClass = {
   id: 'goodclass',
   name: 'Goodclass',
@@ -46,6 +57,8 @@ const goodClass = {
   tools: { fixed: [] },
   startingEquipment: [{ id: 'A', description: 'Stuff' }],
   subclassLevel: 3,
+  levels: levelRows(),
+  features: goodFeatures,
 }
 
 const goodSpell = {
@@ -166,7 +179,7 @@ describe('validateCatalog', () => {
   })
 
   test('accepts a class with a valid spellcasting block', () => {
-    const caster = { ...goodClass, spellcasting: { ability: 'cha', level1: { cantrips: 4, preparedSpells: 2, slots: [2] } } }
+    const caster = { ...goodClass, spellcasting: { ability: 'cha', level1: { cantrips: 4, preparedSpells: 2, slots: [2] } }, levels: levelRows({ cantrips: 4, prepared: 2, slots: [2] }) }
     expect(load({ classes: [caster] }).catalog.classes).toHaveLength(1)
   })
 
@@ -286,9 +299,78 @@ describe('validateCatalog', () => {
       expect(load({ invocations: [{ ...entry, unarmoredBaseAc: 'thirteen' }] }).catalog.invocations).toHaveLength(0)
     })
 
+    describe('the level table and the feature descriptions', () => {
+      const messagesFor = (changes: Record<string, unknown>) => withClass(changes).messages.join(' ')
+
+      test('a class needs exactly 20 rows in order', () => {
+        expect(withClass({ levels: levelRows().slice(0, 19) }).catalog.classes).toHaveLength(0)
+        expect(withClass({ levels: [...levelRows(), levelRows()[0]] }).catalog.classes).toHaveLength(0)
+        expect(withClass({ levels: undefined }).catalog.classes).toHaveLength(0)
+        expect(messagesFor({ levels: [...levelRows().slice(1), levelRows()[0]] })).toMatch(/levels\[0\]\.level must be 1/)
+      })
+
+      test('the proficiency bonus must follow the SRD (+2, rising one every four levels)', () => {
+        const rows = levelRows().map((row) => (row.level === 5 ? { ...row, proficiencyBonus: 2 } : row))
+        expect(messagesFor({ levels: rows })).toMatch(/levels\[4\]\.proficiencyBonus must be 3/)
+        expect(withClass({ levels: rows }).catalog.classes).toHaveLength(0)
+      })
+
+      test('a row needs feature names and text column values', () => {
+        const rows = levelRows()
+        expect(withClass({ levels: [{ ...rows[0], features: [''] }, ...rows.slice(1)] }).catalog.classes).toHaveLength(0)
+        expect(withClass({ levels: [{ ...rows[0], columns: { Rages: 2 } }, ...rows.slice(1)] }).catalog.classes).toHaveLength(0)
+        expect(withClass({ levels: [{ ...rows[0], columns: { Rages: '2' } }, ...rows.slice(1)] }).catalog.classes).toHaveLength(1)
+      })
+
+      test('spellcasting rows are present exactly when the class casts spells', () => {
+        const casting = { ability: 'int', level1: { cantrips: 3, preparedSpells: 4, slots: [2] } }
+        expect(withClass({ spellcasting: casting }).catalog.classes).toHaveLength(0) // a caster with no spell rows
+        expect(withClass({ levels: levelRows({ cantrips: 3, prepared: 4, slots: [2] }) }).catalog.classes).toHaveLength(0) // spell rows with no spellcasting
+      })
+
+      test('level 1 of the table must agree with the level 1 spellcasting numbers', () => {
+        const casting = { ability: 'int', level1: { cantrips: 3, preparedSpells: 4, slots: [2] } }
+        expect(withClass({ spellcasting: casting, levels: levelRows({ cantrips: 3, prepared: 4, slots: [2] }) }).catalog.classes).toHaveLength(1)
+        for (const wrong of [{ cantrips: 2, prepared: 4, slots: [2] }, { cantrips: 3, prepared: 5, slots: [2] }, { cantrips: 3, prepared: 4, slots: [3] }]) {
+          const result = withClass({ spellcasting: casting, levels: levelRows(wrong) })
+          expect(result.catalog.classes).toHaveLength(0)
+          expect(result.messages.join(' ')).toMatch(/does not match the level 1 row/)
+        }
+      })
+
+      test('Pact Magic rows count as slots for the level 1 check, and need a slot level from 1 to 9', () => {
+        const warlock = { ability: 'cha', level1: { cantrips: 2, preparedSpells: 2, slots: [1] } }
+        expect(withClass({ spellcasting: warlock, levels: levelRows({ cantrips: 2, prepared: 2, pact: { slots: 1, slotLevel: 1 } }) }).catalog.classes).toHaveLength(1)
+        expect(withClass({ spellcasting: warlock, levels: levelRows({ cantrips: 2, prepared: 2, pact: { slots: 1, slotLevel: 10 } }) }).catalog.classes).toHaveLength(0)
+        expect(withClass({ spellcasting: warlock, levels: levelRows({ cantrips: 2, prepared: 2 }) }).catalog.classes).toHaveLength(0) // neither slots nor pact
+      })
+
+      test('a feature description must belong to a feature the table lists at that level', () => {
+        expect(withClass({ features: [] }).catalog.classes).toHaveLength(0)
+        expect(messagesFor({ features: [{ level: 2, name: 'Trait one', text: 'Does something useful for the character.' }] })).toMatch(/not listed at level 2/)
+        expect(withClass({ features: [{ level: 1, name: 'Other', text: 'Does something useful for the character.' }] }).catalog.classes).toHaveLength(0)
+        expect(withClass({ features: [{ level: 21, name: 'Trait one', text: 'Does something useful for the character.' }] }).catalog.classes).toHaveLength(0)
+        expect(withClass({ features: [{ level: 1, name: 'Trait one', text: 'short' }] }).catalog.classes).toHaveLength(0)
+      })
+
+      test('a table note such as "(two uses)" does not stop the description matching', () => {
+        const rows = levelRows()
+        const withNote = [{ ...rows[0], features: ['Trait one (two uses)'] }, ...rows.slice(1)]
+        expect(withClass({ levels: withNote }).catalog.classes).toHaveLength(1)
+      })
+
+      test('a spellbook growth must be a positive whole number', () => {
+        const casting = (spellbookPerLevel: unknown) => ({ ability: 'int', level1: { cantrips: 3, preparedSpells: 4, slots: [2], spellbookSpells: 6 }, spellbookPerLevel })
+        const rows = levelRows({ cantrips: 3, prepared: 4, slots: [2] })
+        expect(withClass({ spellcasting: casting(2), levels: rows }).catalog.classes).toHaveLength(1)
+        expect(withClass({ spellcasting: casting(0), levels: rows }).catalog.classes).toHaveLength(0)
+        expect(withClass({ spellcasting: casting('two'), levels: rows }).catalog.classes).toHaveLength(0)
+      })
+    })
+
     test('a spellbook size must be a positive whole number', () => {
       const casting = (spellbookSpells: unknown) => ({ ability: 'int', level1: { cantrips: 3, preparedSpells: 4, slots: [2], spellbookSpells } })
-      expect(withClass({ spellcasting: casting(6) }).catalog.classes).toHaveLength(1)
+      expect(withClass({ spellcasting: casting(6), levels: levelRows({ cantrips: 3, prepared: 4, slots: [2] }) }).catalog.classes).toHaveLength(1)
       expect(withClass({ spellcasting: casting(0) }).catalog.classes).toHaveLength(0)
       expect(withClass({ spellcasting: casting('six') }).catalog.classes).toHaveLength(0)
     })

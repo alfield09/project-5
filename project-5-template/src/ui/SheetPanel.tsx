@@ -10,7 +10,8 @@ import { ABILITY_NAMES, formatModifier } from './labels'
 /** Called when the player clicks something rollable, with its name and its bonus. */
 export type RollHandler = (label: string, bonus: number) => void
 
-export default function SheetPanel({ character, onRoll }: { character: Character; onRoll: RollHandler }) {
+/** `printing` is true while the browser prints: every feature shows with its full text. */
+export default function SheetPanel({ character, onRoll, printing = false }: { character: Character; onRoll: RollHandler; printing?: boolean }) {
   const result = useMemo(() => deriveCharacter(character, catalog), [character])
 
   const species = catalog.species.find((entry) => entry.id === character.speciesId)
@@ -37,7 +38,7 @@ export default function SheetPanel({ character, onRoll }: { character: Character
         </div>
       )}
 
-      {result.ok && <SheetNumbers derived={result.derived} onRoll={onRoll} />}
+      {result.ok && <SheetNumbers derived={result.derived} onRoll={onRoll} printing={printing} />}
     </section>
   )
 }
@@ -73,9 +74,11 @@ const rowStyle = (row: number, span?: number) => ({ '--row': row, ...(span === u
 function SheetNumbers({
   derived,
   onRoll,
+  printing,
 }: {
   derived: Extract<ReturnType<typeof deriveCharacter>, { ok: true }>['derived']
   onRoll: RollHandler
+  printing: boolean
 }) {
   return (
     <div className="sheet-body">
@@ -133,6 +136,12 @@ function SheetNumbers({
         <div>
           <dt>Hit points (max)</dt>
           <dd>{derived.maxHitPoints}</dd>
+        </div>
+        <div>
+          <dt>Hit dice</dt>
+          <dd>
+            {derived.level}d{derived.hitDie}
+          </dd>
         </div>
         {derived.darkvision !== undefined && (
           <div>
@@ -218,6 +227,34 @@ function SheetNumbers({
       <p>Armor: {derived.training.armor.length > 0 ? derived.training.armor.join(', ') : 'None'}</p>
       <p>Weapons: {derived.training.weapons.join(', ')}</p>
       <p>Tools: {derived.training.tools.join(', ')}</p>
+      </div>
+
+      <div className="part features">
+        <h3>Class features</h3>
+        {Object.keys(derived.classColumns).length > 0 && (
+          <ul className="rows" aria-label="Class numbers">
+            {Object.entries(derived.classColumns).map(([name, value]) => (
+              <li key={name}>
+                <span className="name">{name}</span>
+                <span className="bonus">{value}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <ul className="feature-list" aria-label="Class features">
+          {derived.features.map((feature) => (
+            <li key={`${feature.level}-${feature.name}`}>
+              <details open={printing ? true : undefined}>
+                <summary>
+                  <strong>{feature.name}</strong> <span className="tag">Level {feature.level}</span>
+                </summary>
+                {feature.text.split('\n').map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </details>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )

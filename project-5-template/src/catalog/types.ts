@@ -66,8 +66,34 @@ export interface Background extends EntryBase {
 
 export interface Spellcasting {
   ability: Ability
-  // Level 1 numbers only for now. Full level tables come with higher levels (Phase 3).
+  /** The level 1 numbers. The level-by-level numbers are in the class's `levels`; the two must agree (checked on load). */
   level1: { cantrips: number; preparedSpells: number; slots: number[]; spellbookSpells?: number } // slots[0] is level 1 slots; spellbookSpells is the Wizard's spellbook size
+  /** Spells added to a spellbook at each level after 1 (Wizard: 2). */
+  spellbookPerLevel?: number
+}
+
+/** The spellcasting numbers in one row of a class's Features table. */
+export interface LevelSpellcasting {
+  cantrips: number
+  prepared: number // level 1+ spells prepared
+  slots?: number[] // slots[0] is level 1 slots, up to the highest level the class has
+  pact?: { slots: number; slotLevel: number } // Warlock Pact Magic: this many slots, all of this level
+}
+
+/** One row of a class's Features table (SRD "<Class> Features"): what the class gains at this level. */
+export interface ClassLevel {
+  level: number
+  proficiencyBonus: number
+  features: string[] // names as the table lists them; "Subclass feature" marks a subclass feature
+  columns: Record<string, string> // the class's own columns as printed, for example "Rages": "2", "Rage Damage": "+2"
+  spellcasting?: LevelSpellcasting
+}
+
+/** The text of one class feature: a "Level N: Name" section of the class description. */
+export interface ClassFeature {
+  level: number
+  name: string
+  text: string
 }
 
 /** One starting equipment package a class offers at level 1 (SRD: "Choose Starting Equipment"). */
@@ -125,6 +151,8 @@ export interface ClassEntry extends EntryBase {
   order?: { name: string; options: ClassOrder[] }
   subclassLevel: number
   spellcasting?: Spellcasting
+  levels: ClassLevel[] // levels 1 to 20, in order
+  features: ClassFeature[] // the descriptions of the features the table names
 }
 
 export interface Catalog {

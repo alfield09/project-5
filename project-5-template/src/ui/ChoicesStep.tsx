@@ -1,8 +1,9 @@
 // Builder step: the choices that depend on species, background and class, plus worn armor.
 // Display and input only; the rules are enforced by the engine (derive.ts and reconcile.ts).
 import { catalog } from '../catalog/load'
-import type { Ability } from '../engine/abilityScores'
-import type { Character } from '../engine/character'
+import { ABILITIES, type Ability } from '../engine/abilityScores'
+import type { AbilityImprovement, Character } from '../engine/character'
+import { improvementLevels, invocationLimit } from '../engine/classLevels'
 import { proficientSkillNames } from '../engine/classOptions'
 import { SKILL_NAMES } from '../engine/skills'
 import { ABILITY_NAMES } from './labels'
@@ -16,6 +17,48 @@ interface Props {
 function togglePick(picks: string[], skill: string, limit: number): string[] {
   if (picks.includes(skill)) return picks.filter((pick) => pick !== skill)
   return picks.length < limit ? [...picks, skill] : picks
+}
+
+/** One Ability Score Improvement: +2 to one ability, or +1 to each of two. No score goes above 20. */
+function ImprovementPicker({ at, pick, onPick }: { at: number; pick: AbilityImprovement | undefined; onPick: (pick: AbilityImprovement) => void }) {
+  const mode = pick?.mode ?? 'plusTwo'
+  const chosen = pick?.abilities ?? []
+  const setAbility = (index: number, value: string) => {
+    const abilities = [...chosen]
+    if (value === '') abilities.splice(index, 1)
+    else abilities[index] = value as Ability
+    onPick({ mode, abilities: abilities.filter((ability) => ability !== undefined) })
+  }
+  const abilitySelect = (index: number, label: string) => (
+    <>
+      <label htmlFor={`improvement-${at}-${index}`}>{label} </label>
+      <select id={`improvement-${at}-${index}`} value={chosen[index] ?? ''} onChange={(event) => setAbility(index, event.target.value)}>
+        <option value="">Choose</option>
+        {ABILITIES.map((ability) => (
+          <option key={ability} value={ability}>
+            {ABILITY_NAMES[ability]}
+          </option>
+        ))}
+      </select>{' '}
+    </>
+  )
+  return (
+    <fieldset>
+      <legend>Level {at} Ability Score Improvement</legend>
+      <label className="choice">
+        <input type="radio" name={`improvement-${at}-mode`} checked={mode === 'plusTwo'} onChange={() => onPick({ mode: 'plusTwo', abilities: [] })} />
+        +2 to one ability
+      </label>
+      <label className="choice">
+        <input type="radio" name={`improvement-${at}-mode`} checked={mode === 'plusOneEach'} onChange={() => onPick({ mode: 'plusOneEach', abilities: [] })} />
+        +1 to two abilities
+      </label>
+      <p>
+        {mode === 'plusTwo' ? abilitySelect(0, `Level ${at}: +2 to`) : (<>{abilitySelect(0, `Level ${at}: first +1 to`)}{abilitySelect(1, `Level ${at}: second +1 to`)}</>)}
+      </p>
+      <p className="option-text">A score stops at 20.</p>
+    </fieldset>
+  )
 }
 
 export default function ChoicesStep({ character, onChange }: Props) {
@@ -38,6 +81,9 @@ export default function ChoicesStep({ character, onChange }: Props) {
   const toolPicks = character.toolIds ?? []
   const toolChoice = classEntry?.tools.choice
   const invocationRule = classEntry?.invocations
+  const invocationCount = invocationLimit(classEntry, character.level, catalog.invocations.length).count
+  const invocationPicks = character.invocationIds ?? []
+  const improvements = improvementLevels(classEntry, character.level)
 
   return (
     <section aria-labelledby="choices-heading">
@@ -98,6 +144,15 @@ export default function ChoicesStep({ character, onChange }: Props) {
       ) : (
         <p>Choose a background to set its ability bonus.</p>
       )}
+
+      {improvements.map((at) => (
+        <ImprovementPicker
+          key={at}
+          at={at}
+          pick={character.abilityImprovements?.[String(at)]}
+          onPick={(pick) => onChange({ abilityImprovements: { ...character.abilityImprovements, [String(at)]: pick } })}
+        />
+      ))}
 
       {classEntry ? (
         <fieldset>
@@ -170,17 +225,17 @@ export default function ChoicesStep({ character, onChange }: Props) {
       {invocationRule && (
         <fieldset>
           <legend>
-            {invocationRule.label}: pick {invocationRule.count}
+            {invocationRule.label}: pick {invocationCount}
           </legend>
-          {/* One invocation at level 1, so a radio; more than one would need checkboxes with a limit. */}
+          {/* One invocation is a radio; more than one are checkboxes that stop at the limit. */}
           {catalog.invocations.map((invocation) => (
             <div key={invocation.id}>
               <label className="choice">
                 <input
-                  type="radio"
+                  type={invocationCount === 1 ? 'radio' : 'checkbox'}
                   name="invocation"
-                  checked={(character.invocationIds ?? []).includes(invocation.id)}
-                  onChange={() => onChange({ invocationIds: [invocation.id] })}
+                  checked={invocationPicks.includes(invocation.id)}
+                  onChange={() => onChange({ invocationIds: invocationCount === 1 ? [invocation.id] : togglePick(invocationPicks, invocation.id, invocationCount) })}
                 />
                 {invocation.name}
               </label>

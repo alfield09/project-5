@@ -80,7 +80,8 @@ describe('Fighter (Dwarf, Soldier)', () => {
     expect(result.maxHitPoints).toBe(13) // d10 + 2 Con + 1 Dwarven Toughness
     expect(result.speed).toBe(30)
     expect(result.spellcasting).toBeUndefined()
-    expect(result.warnings).toEqual([])
+    // The Fighter picks a Fighting Style at level 1 (Defense gives +1 AC, for example); the sheet does not calculate it yet and says so.
+    expect(result.warnings).toEqual(['These features can change numbers but are not calculated yet: Fighting Style'])
   })
 })
 
@@ -196,8 +197,10 @@ describe('incomplete or invalid choices give problems, never numbers', () => {
     expect(problemsFor({ ...fighter, speciesSkills: ['Athletics'] })).toContain('pick exactly 0 species skill(s)')
   })
 
-  test('only level 1 is supported so far', () => {
-    expect(problemsFor({ ...fighter, level: 2 })).toContain('only level 1 is supported so far')
+  test('the level must be a whole number from 1 to 20', () => {
+    for (const level of [0, 21, 2.5, -1]) {
+      expect(problemsFor({ ...fighter, level }), String(level)).toContain('the level must be a whole number from 1 to 20')
+    }
   })
 
   test('starting equipment must be chosen, and must be one the class offers', () => {

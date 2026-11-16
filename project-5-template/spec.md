@@ -82,6 +82,17 @@ Approved for the MVP:
    - On screen the sheet does not change except for showing the name and background.
    - Not yet on the printed sheet: attacks, equipment, features and traits, hit dice, death saves, personality fields (these have no data in Sheetforge yet).
 
+11. **Levels 1 to 20 (approved Nov 16; built in steps).** The player picks a level from 1 to 20 for any class. The Developer's decisions: all 20 levels, fixed-average hit points, ability score points only (no feats), and the one SRD subclass per class at level 3. Built so far (step 1): everything except the subclass.
+   - The numbers come from each class's "Features" table in SRD 5.2.1, stored in the catalog as `levels` (20 rows per class: proficiency bonus, features gained, the class's own columns, and spell numbers) with the text of each feature in `features`. The loader refuses a class whose table has the wrong proficiency bonus, whose level 1 spell numbers disagree with its table, or whose feature text is not listed in its table.
+   - Hit points: the highest roll on the hit die at level 1; each later level adds the die's average (half the die, plus 1) and the Constitution modifier. A later Constitution increase counts for every level. The Dwarf's Toughness adds 1 per level.
+   - Ability Score Improvement: at each level the class gives one (4, 8, 12 and 16 for every class; the Fighter also at 6 and 14, the Rogue also at 10), the player chooses +2 to one ability or +1 to two different abilities. No score goes above 20. The sheet shows no numbers until every improvement gained so far is chosen. Epic Boon (level 19) is shown as text only.
+   - Spellcasting follows the table: cantrips, prepared spells, spell slots, and the highest spell level offered in the picker (a Warlock's is its Pact Magic slot level). A Wizard's spellbook holds 6 spells at level 1 and 2 more at each level after.
+   - Eldritch Invocations: the number follows the Warlock table, but the player can pick only the five invocations the catalog holds, and the sheet says so when the table allows more.
+   - The sheet lists the class's features with their SRD text (collapsed on screen, expanded in print) and the class's own numbers (Rages, Sneak Attack and so on), plus hit dice.
+   - Lowering the level, or changing class, removes the choices that no longer fit (improvements, spells, invocations, spellbook) with a notice. Everything is saved and kept in character files.
+   - Known limits: class features that change numbers are shown as text but not added (the sheet names them in a warning): Fighting Style, Expertise gained after the Rogue's level 1, Jack of All Trades, Aura of Protection, Fast Movement, Unarmored Movement, Reliable Talent, Slippery Mind, Disciplined Survivor, Primal Champion, Body and Mind, Scholar. The Sorcerer's "Creating Spell Slots" table and the Druid's "Beast Shapes" table are not in the feature text. Mystic Arcanum is text only.
+   - Not built yet: subclasses (the one SRD subclass per class at level 3), and the numbers the features above change.
+
 Provisional (not yet approved): roll history survives a reload; the sheet uses three columns on wide screens and one column on a phone.
 
 Open questions:
@@ -161,6 +172,10 @@ Consequential structural decisions, the alternatives considered, and why you cho
 - Decision: one catalog per edition. Each entry is tagged with its source and license. Homebrew content packs use the same format, so the loader handles SRD and homebrew entries identically.
 - Alternative: typed data in TypeScript files. Better type checking, but harder for users to write packs by hand.
 - Why: users must be able to author and share packs, and the site stays fully static. Entries are validated when loaded, since JSON isn't type checked.
+
+**Nov 16: levels 1 to 20.**
+- Decision: all 20 levels for all twelve classes, fixed-average hit points, ability points only for the level 4 improvement, and the SRD's one subclass per class at level 3.
+- Why: levels are the main reason to use a builder, and the engine reads each class's SRD table instead of special-casing levels, so adding all 20 costs data, not code. Spell numbers were folded into the first step because the same table row holds them; splitting them would have left casters wrong above level 1.
 
 **Nov 9: all twelve classes at level 1, 2024 rules only.**
 - Decision: the nine other SRD classes are added at level 1. The 2014 rules (the pitch's "second edition") are deferred; the shared model with an `edition` field on every entry stays, so they can be added later. See research.md, Scope changes.

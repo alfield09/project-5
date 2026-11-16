@@ -1,7 +1,7 @@
 // Saves and loads the character in the browser, on this device only (no accounts, no server).
 // Anything read back is checked before use, because stored text can be old, edited or damaged.
 import { ABILITIES, type Ability, type ScoreMethod } from '../engine/abilityScores'
-import { MAX_NAME_LENGTH, type BackgroundBonus, type Character } from '../engine/character'
+import { MAX_NAME_LENGTH, type AbilityImprovement, type BackgroundBonus, type Character } from '../engine/character'
 
 export const STORAGE_KEY = 'sheetforge.character'
 const FORMAT_VERSION = 1
@@ -91,6 +91,19 @@ function backgroundBonusProblem(value: unknown): string | undefined {
   return fine(value.plusTwo) && fine(value.plusOne) ? undefined : 'backgroundBonus'
 }
 
+/** Problems with the saved Ability Score Improvements (keyed by the level they were gained at), or undefined if they are sound. */
+function improvementsProblem(value: unknown): string | undefined {
+  if (value === undefined) return undefined
+  if (!isRecord(value)) return 'abilityImprovements'
+  for (const [at, pick] of Object.entries(value)) {
+    const level = Number(at)
+    if (!(Number.isInteger(level) && level >= 1 && level <= 20)) return 'abilityImprovements'
+    if (!isRecord(pick) || (pick.mode !== 'plusTwo' && pick.mode !== 'plusOneEach')) return 'abilityImprovements'
+    if (!(Array.isArray(pick.abilities) && pick.abilities.length <= 2 && pick.abilities.every(isAbility))) return 'abilityImprovements'
+  }
+  return undefined
+}
+
 /** Check a value read from storage and, if it is sound, return a clean Character with only the known fields. */
 export function validateCharacter(raw: unknown): { ok: true; character: Character } | { ok: false; reason: string } {
   if (!isRecord(raw)) return { ok: false, reason: 'the saved character is not an object' }
@@ -120,6 +133,8 @@ export function validateCharacter(raw: unknown): { ok: true; character: Characte
 
   const bonusProblem = backgroundBonusProblem(raw.backgroundBonus)
   if (bonusProblem) problems.push(bonusProblem)
+  const improvementProblem = improvementsProblem(raw.abilityImprovements)
+  if (improvementProblem) problems.push(improvementProblem)
 
   if (raw.scoreMethod !== undefined && !SCORE_METHODS.includes(raw.scoreMethod as ScoreMethod)) problems.push('scoreMethod')
 
@@ -145,6 +160,12 @@ export function validateCharacter(raw: unknown): { ok: true; character: Characte
     if (raw[field] !== undefined) character[field] = raw[field] as string[]
   }
   if (raw.backgroundBonus !== undefined) character.backgroundBonus = raw.backgroundBonus as BackgroundBonus
+  if (raw.abilityImprovements !== undefined) {
+    // Copy only the known fields of each improvement.
+    character.abilityImprovements = Object.fromEntries(
+      Object.entries(raw.abilityImprovements as Record<string, AbilityImprovement>).map(([at, pick]) => [at, { mode: pick.mode, abilities: [...pick.abilities] }]),
+    )
+  }
   if (raw.scoreMethod !== undefined) character.scoreMethod = raw.scoreMethod as ScoreMethod
   if (rolled !== undefined) character.rolledScores = rolled as number[]
   return { ok: true, character }

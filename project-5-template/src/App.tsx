@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { catalog } from './catalog/load'
 import { MAX_NAME_LENGTH, type Character } from './engine/character'
+import { MAX_LEVEL } from './engine/classLevels'
 import { addToHistory, rollCheck, type RandomSource, type RollMode, type RollResult } from './engine/dice'
 import { reconcileCharacter } from './engine/reconcile'
 import { browserStorage, loadCharacter, saveCharacter, type StorageLike } from './storage/characterStorage'
@@ -153,7 +154,7 @@ export default function App({
           </p>
 
           <section aria-labelledby="name-heading">
-            <h2 id="name-heading">Name</h2>
+            <h2 id="name-heading">Name and level</h2>
             <label>
               Character name
               <input
@@ -163,6 +164,16 @@ export default function App({
                 onChange={(event) => change({ name: event.target.value === '' ? undefined : event.target.value })}
               />
             </label>
+            <p>
+              <label htmlFor="character-level">Level </label>
+              <select id="character-level" value={character.level} onChange={(event) => change({ level: Number(event.target.value) })}>
+                {Array.from({ length: MAX_LEVEL }, (_, index) => index + 1).map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </p>
           </section>
 
           <CatalogStep
@@ -195,7 +206,7 @@ export default function App({
           </div>
           {printing ? (
             <>
-              <SheetPanel character={character} onRoll={roll} />
+              <SheetPanel character={character} onRoll={roll} printing />
               <SpellsTab character={character} onRoll={roll} printing />
             </>
           ) : view === 'sheet' ? (

@@ -6,7 +6,7 @@ import type { Character } from '../engine/character'
 import { deriveCharacter } from '../engine/derive'
 import { chosenOrder } from '../engine/classOptions'
 import { countPicks, needsSpellAttack, pickedSpells, savingThrowAbilities, spellLimits } from '../engine/spells'
-import { ABILITY_NAMES, formatModifier, levelLabel } from './labels'
+import { ABILITY_NAMES, formatModifier, levelLabel, leveledSpellsLabel } from './labels'
 import SpellDetails from './SpellDetails'
 import type { RollHandler } from './SheetPanel'
 
@@ -18,7 +18,7 @@ export default function SpellsTab({ character, onRoll, printing = false }: { cha
   const result = useMemo(() => deriveCharacter(character, catalog), [character])
 
   const classEntry = catalog.classes.find((entry) => entry.id === character.classId)
-  const limits = spellLimits(classEntry, chosenOrder(classEntry, character.orderId))
+  const limits = spellLimits(classEntry, chosenOrder(classEntry, character.orderId), character.level)
   const picks = character.spellIds ?? []
   const chosen = pickedSpells(picks, catalog)
   const counts = countPicks(picks, catalog)
@@ -36,7 +36,7 @@ export default function SpellsTab({ character, onRoll, printing = false }: { cha
     return (
       <section aria-labelledby="spells-heading" className="sheet spells-sheet">
         <h2 id="spells-heading">Spells</h2>
-        <p>{classEntry.name}s do not cast spells at level 1.</p>
+        <p>{classEntry.name}s do not cast spells at level {character.level}.</p>
       </section>
     )
   }
@@ -63,9 +63,9 @@ export default function SpellsTab({ character, onRoll, printing = false }: { cha
             <dt>Spell attack bonus</dt>
             <dd>{formatModifier(casting.attackBonus)}</dd>
           </div>
-          {casting.slots.map((slots, index) => (
+          {casting.slots.map((slots, index) => slots > 0 && (
             <div key={index}>
-              <dt>Level {index + 1} slots</dt>
+              <dt>Level {index + 1} slots{casting.pact ? ' (Pact Magic)' : ''}</dt>
               <dd>{slots}</dd>
             </div>
           ))}
@@ -79,7 +79,7 @@ export default function SpellsTab({ character, onRoll, printing = false }: { cha
           Still to pick in the builder:
           {counts.cantrips < limits.cantrips && ` ${limits.cantrips - counts.cantrips} cantrip(s)`}
           {counts.cantrips < limits.cantrips && counts.spells < limits.spells && ' and'}
-          {counts.spells < limits.spells && ` ${limits.spells - counts.spells} level 1 spell(s)`}.
+          {counts.spells < limits.spells && ` ${limits.spells - counts.spells} ${leveledSpellsLabel(limits.maxSpellLevel).replace('spells', 'spell(s)')}`}.
         </p>
       )}
 
