@@ -74,6 +74,14 @@ Approved for the MVP:
    - The other level 1 features (Rage, Sneak Attack, Martial Arts, Bardic Inspiration and so on) are not shown yet; they belong with a Features & Traits tab.
    - Works: each choice is cleared with a notice when a change makes it invalid (for example the Cleric's order when the class changes), and all of them are saved and restored.
 
+10. **Printed sheet and character name (approved Nov 16: "yes and implement it").** A "Print or save as PDF" button prints only the sheet, black on white, on one page. The printed sheet follows the order of the reference sheet in `reference/official-5e-character-sheet.png` (information grouping only; Sheetforge's own styling, no logo or art from it):
+   - Header: character name, species, class and level, background.
+   - Left side: each ability's tile with its saving throw and its skills beside it (Strength: Athletics; Dexterity: Acrobatics, Sleight of Hand, Stealth; Constitution: none; Intelligence: Arcana, History, Investigation, Nature, Religion; Wisdom: Animal Handling, Insight, Medicine, Perception, Survival; Charisma: Deception, Intimidation, Performance, Persuasion).
+   - Key numbers (proficiency bonus, armor class, initiative, speed, hit points, darkvision, and spell numbers for casters) in a band under the header; passive scores and training on the right.
+   - A **Character name** field is added to the character (up to 60 characters, optional, saved, and included in character files). Player name, alignment and experience points are not added yet.
+   - On screen the sheet does not change except for showing the name and background.
+   - Not yet on the printed sheet: attacks, equipment, features and traits, hit dice, death saves, personality fields (these have no data in Sheetforge yet).
+
 Provisional (not yet approved): roll history survives a reload; the sheet uses three columns on wide screens and one column on a phone.
 
 Open questions:

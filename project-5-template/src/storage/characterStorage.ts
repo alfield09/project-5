@@ -1,7 +1,7 @@
 // Saves and loads the character in the browser, on this device only (no accounts, no server).
 // Anything read back is checked before use, because stored text can be old, edited or damaged.
 import { ABILITIES, type Ability, type ScoreMethod } from '../engine/abilityScores'
-import type { BackgroundBonus, Character } from '../engine/character'
+import { MAX_NAME_LENGTH, type BackgroundBonus, type Character } from '../engine/character'
 
 export const STORAGE_KEY = 'sheetforge.character'
 const FORMAT_VERSION = 1
@@ -101,6 +101,7 @@ export function validateCharacter(raw: unknown): { ok: true; character: Characte
   for (const field of ['speciesId', 'backgroundId', 'classId', 'equipmentOptionId', 'orderId']) {
     if (raw[field] !== undefined && typeof raw[field] !== 'string') problems.push(field)
   }
+  if (raw.name !== undefined && !(typeof raw.name === 'string' && raw.name.length <= MAX_NAME_LENGTH)) problems.push('name')
   for (const field of LIST_FIELDS) {
     if (raw[field] !== undefined && !isTextList(raw[field])) problems.push(field)
   }
@@ -137,7 +138,7 @@ export function validateCharacter(raw: unknown): { ok: true; character: Characte
     classSkills: raw.classSkills as string[],
     speciesSkills: raw.speciesSkills as string[],
   }
-  for (const field of ['speciesId', 'backgroundId', 'classId', 'equipmentOptionId', 'orderId'] as const) {
+  for (const field of ['name', 'speciesId', 'backgroundId', 'classId', 'equipmentOptionId', 'orderId'] as const) {
     if (raw[field] !== undefined) character[field] = raw[field] as string
   }
   for (const field of LIST_FIELDS) {

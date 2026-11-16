@@ -1,7 +1,7 @@
 // The character sheet: shows what the engine calculates. No calculation happens here (spec.md, Structure rules).
-import { useMemo } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { catalog } from '../catalog/load'
-import { ABILITIES } from '../engine/abilityScores'
+import { ABILITIES, type Ability } from '../engine/abilityScores'
 import type { Character } from '../engine/character'
 import { deriveCharacter } from '../engine/derive'
 import { SKILLS } from '../engine/skills'
@@ -15,13 +15,16 @@ export default function SheetPanel({ character, onRoll }: { character: Character
 
   const species = catalog.species.find((entry) => entry.id === character.speciesId)
   const classEntry = catalog.classes.find((entry) => entry.id === character.classId)
+  const background = catalog.backgrounds.find((entry) => entry.id === character.backgroundId)
   const title =
     species && classEntry ? `${species.name} ${classEntry.name}, level ${character.level}` : 'New character'
 
   return (
     <section aria-labelledby="sheet-heading" className="sheet">
       <h2 id="sheet-heading">Character sheet</h2>
+      {character.name && <p className="sheet-name">{character.name}</p>}
       <p className="sheet-title">{title}</p>
+      {background && <p className="sheet-background">Background: {background.name}</p>}
 
       {!result.ok && (
         <div role="status">
@@ -49,6 +52,24 @@ function Marker({ proficient, expert = false }: { proficient: boolean; expert?: 
   )
 }
 
+/**
+ * Where each ability sits in the printed sheet: its saving throw and then its skills, one row each, with the ability
+ * tile spanning them (the reference sheet's grouping). The numbers go to the CSS as --row and --span; the screen ignores them.
+ */
+function printPlacement(): { ability: Ability; row: number; span: number; skillRows: Record<string, number> }[] {
+  let next = 1
+  return ABILITIES.map((ability) => {
+    const skills = SKILLS.filter((skill) => skill.ability === ability)
+    const row = next
+    next += 1 + skills.length
+    return { ability, row, span: 1 + skills.length, skillRows: Object.fromEntries(skills.map((skill, index) => [skill.name, row + 1 + index])) }
+  })
+}
+
+const PLACEMENT = printPlacement()
+const placementOf = (ability: Ability) => PLACEMENT.find((entry) => entry.ability === ability)!
+const rowStyle = (row: number, span?: number) => ({ '--row': row, ...(span === undefined ? {} : { '--span': span }) }) as CSSProperties
+
 function SheetNumbers({
   derived,
   onRoll,
@@ -57,7 +78,7 @@ function SheetNumbers({
   onRoll: RollHandler
 }) {
   return (
-    <>
+    <div className="sheet-body">
       {derived.warnings.length > 0 && (
         <ul className="warnings" aria-label="Warnings">
           {derived.warnings.map((warning) => (
@@ -68,7 +89,7 @@ function SheetNumbers({
 
       <ul className="abilities" aria-label="Ability scores">
         {ABILITIES.map((ability) => (
-          <li key={ability}>
+          <li key={ability} style={rowStyle(placementOf(ability).row, placementOf(ability).span)}>
             <button
               type="button"
               className="roll-tile"
@@ -133,10 +154,11 @@ function SheetNumbers({
         )}
       </dl>
 
+      <div className="part saves">
       <h3>Saving throws</h3>
       <ul className="rows">
         {ABILITIES.map((ability) => (
-          <li key={ability}>
+          <li key={ability} style={rowStyle(placementOf(ability).row)}>
             <button
               type="button"
               className="roll-row"
@@ -150,11 +172,13 @@ function SheetNumbers({
           </li>
         ))}
       </ul>
+      </div>
 
+      <div className="part skills">
       <h3>Skills</h3>
       <ul className="rows">
         {SKILLS.map((skill) => (
-          <li key={skill.name}>
+          <li key={skill.name} style={rowStyle(placementOf(skill.ability).skillRows[skill.name])}>
             <button
               type="button"
               className="roll-row"
@@ -169,7 +193,9 @@ function SheetNumbers({
           </li>
         ))}
       </ul>
+      </div>
 
+      <div className="part passives">
       <h3>Passive scores</h3>
       <ul className="rows">
         <li>
@@ -185,11 +211,14 @@ function SheetNumbers({
           <span className="bonus">{derived.passive.insight}</span>
         </li>
       </ul>
+      </div>
 
+      <div className="part training">
       <h3>Training</h3>
       <p>Armor: {derived.training.armor.length > 0 ? derived.training.armor.join(', ') : 'None'}</p>
       <p>Weapons: {derived.training.weapons.join(', ')}</p>
       <p>Tools: {derived.training.tools.join(', ')}</p>
-    </>
+      </div>
+    </div>
   )
 }

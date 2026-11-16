@@ -9,9 +9,12 @@ import type { Ability, PartialScores, ScoreMethod } from './abilityScores'
  */
 export type BackgroundBonus = { plusTwo?: Ability; plusOne?: Ability } | { plusOneAll: true }
 
+export const MAX_NAME_LENGTH = 60
+
 export interface Character {
   edition: Edition
   level: number
+  name?: string // the character's name; up to MAX_NAME_LENGTH characters
   speciesId?: string
   backgroundId?: string
   classId?: string

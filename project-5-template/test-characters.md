@@ -179,7 +179,7 @@ Spell attack bonus:    +4
 
 # New classes (drafted Nov 9)
 
-**These five are drafted by the Agent and not yet reviewed by the Developer.** They test the level 1 rules that change the numbers: Unarmored Defense (Barbarian: Dexterity and Constitution; Monk: Dexterity and Wisdom), Rogue Expertise, and the Cleric's and Druid's order choices. The engine tests for these rules will not be written until each is checked. As before, check the numbers by hand against the SRD, not against mine.
+**These five were drafted by the Agent and approved by the Developer on Nov 16.** They test the level 1 rules that change the numbers: Unarmored Defense (Barbarian: Dexterity and Constitution; Monk: Dexterity and Wisdom), Rogue Expertise, and the Cleric's and Druid's order choices. As before, check the numbers by hand against the SRD, not against mine.
 
 Rules for the new features (SRD 5.2.1):
 - Unarmored Defense, Barbarian: with no armor, AC is 10 + Dexterity modifier + Constitution modifier, and a Shield can still be used. Monk: with no armor and no Shield, AC is 10 + Dexterity modifier + Wisdom modifier.
@@ -189,7 +189,7 @@ Rules for the new features (SRD 5.2.1):
 
 ## Barbarian (new class: Unarmored Defense)
 
-Status: drafted by the Agent on Nov 9, not verified by the Developer.
+Status: drafted by the Agent on Nov 9; reviewed and approved by the Developer on Nov 16.
 
 ```
 Edition: 2024
@@ -241,7 +241,7 @@ Speed:                 30
 
 ## Monk (new class: Unarmored Defense with Wisdom)
 
-Status: drafted by the Agent on Nov 9, not verified by the Developer.
+Status: drafted by the Agent on Nov 9; reviewed and approved by the Developer on Nov 16.
 
 ```
 Edition: 2024
@@ -293,7 +293,7 @@ Speed:                 30
 
 ## Rogue (new class: Expertise)
 
-Status: drafted by the Agent on Nov 9, not verified by the Developer.
+Status: drafted by the Agent on Nov 9; reviewed and approved by the Developer on Nov 16.
 
 ```
 Edition: 2024
@@ -348,7 +348,7 @@ Note: Stealth and Sleight of Hand are +7: Dex +3, proficiency +2, and the profic
 
 ## Cleric (new class: Divine Order, Thaumaturge)
 
-Status: drafted by the Agent on Nov 9, not verified by the Developer.
+Status: drafted by the Agent on Nov 9; reviewed and approved by the Developer on Nov 16.
 
 ```
 Edition: 2024
@@ -407,7 +407,7 @@ Note: Arcana is +2: Int -1 plus the Thaumaturge bonus of +3. Religion is +4: Int
 
 ## Druid (new class: Primal Order, Magician)
 
-Status: drafted by the Agent on Nov 9, not verified by the Developer.
+Status: drafted by the Agent on Nov 9; reviewed and approved by the Developer on Nov 16.
 
 ```
 Edition: 2024

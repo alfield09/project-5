@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { catalog } from './catalog/load'
-import type { Character } from './engine/character'
+import { MAX_NAME_LENGTH, type Character } from './engine/character'
 import { addToHistory, rollCheck, type RandomSource, type RollMode, type RollResult } from './engine/dice'
 import { reconcileCharacter } from './engine/reconcile'
 import { browserStorage, loadCharacter, saveCharacter, type StorageLike } from './storage/characterStorage'
@@ -8,6 +9,8 @@ import AbilityScoreStep from './ui/AbilityScoreStep'
 import Attribution from './ui/Attribution'
 import CatalogStep from './ui/CatalogStep'
 import ChoicesStep from './ui/ChoicesStep'
+import { browserDownload, type DownloadFile } from './ui/download'
+import FilePanel from './ui/FilePanel'
 import RollPanel from './ui/RollPanel'
 import SheetPanel from './ui/SheetPanel'
 import SpellsStep from './ui/SpellsStep'
@@ -70,9 +73,11 @@ function saveMessage(status: SaveStatus): string {
 export default function App({
   random = Math.random,
   storage: storageProp,
+  download = browserDownload,
 }: {
   random?: RandomSource
   storage?: StorageLike | null // null means no storage; leave out to use the browser's
+  download?: DownloadFile
 }) {
   const [storage] = useState<StorageLike | undefined>(() => (storageProp === undefined ? browserStorage() : (storageProp ?? undefined)))
   const [start] = useState<Start>(() => startFrom(storage))
@@ -83,12 +88,35 @@ export default function App({
   const [rollMode, setRollMode] = useState<RollMode>('normal')
   const [rolls, setRolls] = useState<RollResult[]>([]) // newest first; not saved (spec.md, provisional)
   const [view, setView] = useState<'sheet' | 'spells'>('sheet') // which part of the sheet is showing
+  const [printing, setPrinting] = useState(false) // true only while the browser prints; then every part of the sheet is shown
+
+  // A printout holds every part of the sheet, whichever one is showing. The page switches to all of them just before the
+  // browser takes its snapshot (flushSync makes the change land first) and back afterwards. This covers Ctrl+P too.
+  useEffect(() => {
+    const before = () => flushSync(() => setPrinting(true))
+    const after = () => setPrinting(false)
+    window.addEventListener('beforeprint', before)
+    window.addEventListener('afterprint', after)
+    return () => {
+      window.removeEventListener('beforeprint', before)
+      window.removeEventListener('afterprint', after)
+    }
+  }, [])
 
   function change(patch: Partial<Character>) {
     const result = reconcileCharacter({ ...character, ...patch }, catalog)
     setCharacter(result.character)
     setCleared(result.removed.length > 0 ? { heading: 'Cleared because of your last change:', items: result.removed } : undefined)
 
+    const saved = saveCharacter(storage, result.character)
+    setSaveStatus(saved.ok ? { kind: 'saved' } : { kind: 'not-saved', reason: saved.reason })
+  }
+
+  /** Use a character loaded from a file: tidy it like any edit, show what was cleared, and save it. */
+  function replaceCharacter(loaded: Character) {
+    const result = reconcileCharacter(loaded, catalog)
+    setCharacter(result.character)
+    setCleared(result.removed.length > 0 ? { heading: 'Cleared from the loaded file because the catalog does not offer it:', items: result.removed } : undefined)
     const saved = saveCharacter(storage, result.character)
     setSaveStatus(saved.ok ? { kind: 'saved' } : { kind: 'not-saved', reason: saved.reason })
   }
@@ -124,6 +152,19 @@ export default function App({
             {saveMessage(saveStatus)}
           </p>
 
+          <section aria-labelledby="name-heading">
+            <h2 id="name-heading">Name</h2>
+            <label>
+              Character name
+              <input
+                type="text"
+                maxLength={MAX_NAME_LENGTH}
+                value={character.name ?? ''}
+                onChange={(event) => change({ name: event.target.value === '' ? undefined : event.target.value })}
+              />
+            </label>
+          </section>
+
           <CatalogStep
             speciesId={character.speciesId}
             backgroundId={character.backgroundId}
@@ -139,6 +180,7 @@ export default function App({
           />
           <ChoicesStep character={character} onChange={change} />
           <SpellsStep character={character} onChange={change} />
+          <FilePanel character={character} onReplace={replaceCharacter} download={download} />
         </div>
 
         <div className="sheet-pane">
@@ -151,7 +193,16 @@ export default function App({
               Spells
             </button>
           </div>
-          {view === 'sheet' ? <SheetPanel character={character} onRoll={roll} /> : <SpellsTab character={character} onRoll={roll} />}
+          {printing ? (
+            <>
+              <SheetPanel character={character} onRoll={roll} />
+              <SpellsTab character={character} onRoll={roll} printing />
+            </>
+          ) : view === 'sheet' ? (
+            <SheetPanel character={character} onRoll={roll} />
+          ) : (
+            <SpellsTab character={character} onRoll={roll} />
+          )}
         </div>
       </div>
 

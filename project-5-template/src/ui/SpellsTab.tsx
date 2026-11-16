@@ -12,7 +12,8 @@ import type { RollHandler } from './SheetPanel'
 
 type Filter = 'all' | number // a spell level, 0 for cantrips
 
-export default function SpellsTab({ character, onRoll }: { character: Character; onRoll: RollHandler }) {
+/** `printing` is true while the browser prints: every chosen spell shows with its full text, and a class that does not cast shows nothing. */
+export default function SpellsTab({ character, onRoll, printing = false }: { character: Character; onRoll: RollHandler; printing?: boolean }) {
   const [filter, setFilter] = useState<Filter>('all')
   const result = useMemo(() => deriveCharacter(character, catalog), [character])
 
@@ -22,9 +23,10 @@ export default function SpellsTab({ character, onRoll }: { character: Character;
   const chosen = pickedSpells(picks, catalog)
   const counts = countPicks(picks, catalog)
 
+  if (printing && (classEntry === undefined || limits === undefined)) return null
   if (classEntry === undefined) {
     return (
-      <section aria-labelledby="spells-heading" className="sheet">
+      <section aria-labelledby="spells-heading" className="sheet spells-sheet">
         <h2 id="spells-heading">Spells</h2>
         <p>Choose a class to see its spells.</p>
       </section>
@@ -32,7 +34,7 @@ export default function SpellsTab({ character, onRoll }: { character: Character;
   }
   if (limits === undefined) {
     return (
-      <section aria-labelledby="spells-heading" className="sheet">
+      <section aria-labelledby="spells-heading" className="sheet spells-sheet">
         <h2 id="spells-heading">Spells</h2>
         <p>{classEntry.name}s do not cast spells at level 1.</p>
       </section>
@@ -44,7 +46,7 @@ export default function SpellsTab({ character, onRoll }: { character: Character;
   const casting = result.ok ? result.derived.spellcasting : undefined
 
   return (
-    <section aria-labelledby="spells-heading" className="sheet">
+    <section aria-labelledby="spells-heading" className="sheet spells-sheet">
       <h2 id="spells-heading">Spells</h2>
 
       {casting ? (
@@ -98,7 +100,7 @@ export default function SpellsTab({ character, onRoll }: { character: Character;
         <ul className="spell-list" aria-label="Chosen spells">
           {shown.map((spell) => (
             <li key={spell.id} className="spell-row">
-              <details>
+              <details open={printing ? true : undefined}>
                 <summary>
                   <strong>{spell.name}</strong> <span className="tag">{levelLabel(spell)}, {spell.school}</span>
                 </summary>

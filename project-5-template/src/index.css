@@ -386,3 +386,116 @@ details summary {
   font-size: 0.9rem;
   color: #aab1b8;
 }
+
+/* Printing (and "Save as PDF" from the print dialog): only the sheet, black on white, saving ink. */
+@media print {
+  :root,
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .builder,
+  .rolls,
+  .sheet-pane .filters,
+  main > p {
+    display: none;
+  }
+
+  .layout {
+    display: block;
+  }
+
+  .sheet-pane {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .sheet-pane * {
+    background: transparent;
+    color: #000;
+    box-shadow: none;
+    border-color: #000;
+  }
+
+  .sheet-pane button {
+    border: none;
+    padding: 0;
+    font: inherit;
+  }
+
+  .sheet-pane li,
+  .sheet-pane dl > div {
+    break-inside: avoid;
+  }
+}
+
+/* Printed sheet, following the reference sheet's grouping (spec.md item 10); the styling is Sheetforge's own.
+   One grid: column 1 holds the ability tiles, column 2 each ability's saving throw and skills (the rows are placed
+   by --row and --span set in SheetPanel), column 3 the passive scores and training. Rows 1 and 2 hold the warnings and
+   the key-number band, so the ability rows start at row 3. */
+@media print {
+  #sheet-heading { display: none; }
+  .spells-sheet { break-before: page; }
+  .roll-attack { display: none; }
+  .sheet-name { font-size: 1.4rem; font-weight: 700; margin: 0; }
+  .sheet-title, .sheet-background { margin: 0 0 4px; }
+
+  .sheet-body {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 0;
+    align-items: start;
+    margin-top: 12px;
+  }
+
+  .sheet-body > .warnings { grid-column: 1 / -1; grid-row: 1; }
+  .sheet-body > .stats {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 0 0 12px;
+  }
+
+  /* The ability tiles and the two lists dissolve into the grid, so every row can be placed on its own. */
+  .sheet-body > .abilities,
+  .sheet-body .part.saves,
+  .sheet-body .part.skills,
+  .sheet-body .part.saves .rows,
+  .sheet-body .part.skills .rows { display: contents; }
+
+  .sheet-body .part.saves h3,
+  .sheet-body .part.skills h3 { display: none; }
+
+  .sheet-body > .abilities > li { grid-column: 1; grid-row: calc(var(--row) + 2) / span var(--span); margin: 0 0 4px; }
+  .sheet-body .part.saves .rows li,
+  .sheet-body .part.skills .rows li { grid-column: 2; grid-row: calc(var(--row) + 2); }
+
+  .sheet-body .part.passives { grid-column: 3; grid-row: 3 / span 4; }
+  .sheet-body .part.training { grid-column: 3; grid-row: 7 / span 6; }
+
+  .sheet-body .abilities button,
+  .sheet-body .stats > div {
+    border: 1.5px solid #000;
+    border-radius: 6px;
+    padding: 4px;
+    text-align: center;
+  }
+  .sheet-body .abilities button { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
+  .sheet-body .abilities .label { font-size: 0.6rem; text-transform: uppercase; }
+  .sheet-body .abilities strong { font-size: 1.3rem; }
+  .sheet-body .stats dd { margin: 0; font-size: 1.2rem; font-weight: 700; }
+  .sheet-body .stats dt { font-size: 0.75rem; text-transform: uppercase; }
+
+  /* Compact rows: name on the left, number on the right. */
+  .sheet-body .rows { padding: 0; margin: 0; list-style: none; }
+  .sheet-body .rows li { display: flex; justify-content: space-between; gap: 8px; padding: 0; border-bottom: 1px solid #999; }
+  .sheet-body .rows button { display: flex; width: 100%; gap: 8px; align-items: baseline; padding: 0; margin: 0; min-height: 0; line-height: 1.3; }
+  .sheet-body .rows .name { flex: 1; text-align: left; }
+  .sheet-body h3 { margin: 0 0 4px; font-size: 1rem; }
+  .sheet-body .part p { margin: 2px 0; }
+}
