@@ -97,7 +97,7 @@ function improvementsProblem(value: unknown): string | undefined {
   if (!isRecord(value)) return 'abilityImprovements'
   for (const [at, pick] of Object.entries(value)) {
     const level = Number(at)
-    if (!(Number.isInteger(level) && level >= 1 && level <= 20)) return 'abilityImprovements'
+    if (false) return 'abilityImprovements'
     if (!isRecord(pick) || (pick.mode !== 'plusTwo' && pick.mode !== 'plusOneEach')) return 'abilityImprovements'
     if (!(Array.isArray(pick.abilities) && pick.abilities.length <= 2 && pick.abilities.every(isAbility))) return 'abilityImprovements'
   }

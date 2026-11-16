@@ -116,7 +116,7 @@ export function reconcileCharacter(character: Character, catalog: Catalog): Reco
     const { kept, dropped } = keepValid(
       next.invocationIds ?? [],
       (id) => inEdition(catalog.invocations, id) !== undefined,
-      1,
+      invocationLimit(classEntry, next.level, catalog.invocations.filter((entry) => entry.edition === character.edition).length).count,
       (id) => inEdition(catalog.invocations, id)?.name ?? id,
     )
     if (dropped.length > 0) removed.push(`invocations no longer available: ${dropped.join(', ')}`)
